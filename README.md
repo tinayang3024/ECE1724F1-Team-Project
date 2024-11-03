@@ -55,3 +55,65 @@ To communicate with the back-end database, the Personal Finance tracker will nee
 
 
 # Tentative Plan
+
+Overall, the project implementation will be divided into three phases: basic system setup, basic user query implementation, and final testing and integration. Each of these phases will contain sub-tasks that are allocated to each team member.
+
+The basic system setup phase includes building the backbone system for the personal finance tracker: setting up the backend SQL-based database, the HTTPS server that communicates frontend user query to the backend database, and the frontend CLI user interface. Two weeks are allocated to this phase, during which the team members will familiarize themselves with the crates corresponding to the feature they are responsible for, implement the backbone features, and perform a basic integration of these features.
+
+The basic user query implementation phase includes implementing the mandatory transaction requests that users will use to modify or query their personal finance data. Those queries are divided into three categories: user-related queries, account-related queries, and transaction related queries. Two weeks are allocated to this phase.
+
+The final testing and integration phase will not be further divided into subtasks, and all team members will work on this task together to review each other’s code as well as testing the system’s functionality and performance against the design expectation outlined in this proposal. One week is allocated to this phase.
+
+The following table summarizes the development plan, and the responsibility assignment to each of the team members:
+<table class="tg">
+  <thead>
+    <tr>
+      <th>Project Phase</th>
+      <th>Duration</th>
+      <th>Tasks</th>
+      <th>Owner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan=3>Basic system setup</td>
+      <td rowspan=3>2 weeks</td>
+      <td>Backend database setup</td>
+      <td>Sophie</td>
+    </tr>
+    <tr>
+      <td>HTTPS server setup (ensure the communication between database and CLI)</td>
+      <td>Renli</td>
+    </tr>
+    <tr>
+      <td>Basic user interface (CLI) setup</td>
+      <td>Tina</td>
+    </tr>
+    <tr>
+      <td rowspan=3>Basic user query implementation</td>
+      <td rowspan=3>2 weeks</td>
+      <td>User-related queries</td>
+      <td>Renli</td>
+    </tr>
+    <tr>
+      <td>Account-related queries</td>
+      <td>Sophie</td>
+    </tr>
+    <tr>
+      <td>Transaction-related queries</td>
+      <td>Tina</td>
+    </tr>
+    <tr>
+      <td rowspan=2>Final integration and testing</td>
+      <td rowspan=2>1 week</td>
+      <td>Testing</td>
+      <td>Team</td>
+    </tr>
+    <tr>
+      <td>Integration</td>
+      <td>Team</td>
+    </tr>
+  </tbody>
+</table>
+
+The above totals to five weeks of planned development, and the team has allocated an extra week for contingency planning and documentation needs. If the implementation goes according to or beyond the above outline, the team will use the extra time to implement any advanced user queries not included in the key features section, such as providing a budgeting report, generating a customizable transaction report including histograms of income and expenses pattern, and a savings account type in addition to the chequing and credit account type supported as base features.
