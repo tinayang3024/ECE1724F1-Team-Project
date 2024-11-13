@@ -60,6 +60,7 @@ use ratatui::{
 pub enum InputMode {
     Normal,
     Editing,
+    ViewAccountList,
 }
 
 // impl App {

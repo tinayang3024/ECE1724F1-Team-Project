@@ -116,6 +116,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         let input = Paragraph::new(format!("username: {}", app.input))
             .style(match app.input_mode {
                 InputMode::Normal => Style::default(),
+                InputMode::ViewAccountList => Style::default(),
                 InputMode::Editing => Style::default().fg(Color::Yellow),
             })
             .block(Block::bordered().title("Register/Login"));

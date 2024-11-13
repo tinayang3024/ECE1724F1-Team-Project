@@ -23,6 +23,12 @@ use ratatui::{
 /// Application result type.
 pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum Status {
+    Selected,
+    Default,
+}
+
 #[derive(Debug)]
 struct TransRecord {
     transaction_id: String,
@@ -32,6 +38,7 @@ struct TransRecord {
     description: String,
     amount: f64,
     // acct_id: Int, // ? 
+    status: Status,
 }
 
 #[derive(Debug)]
@@ -41,6 +48,7 @@ struct Account {
     acct_type: String, // Credit or Chequing or Savings?
     user_id: String,
     card_limit: f64,
+    status: Status
 }
 
 struct TransList {
@@ -73,6 +81,7 @@ impl TransRecord {
             category: category.to_string(),
             description: descrip.to_string(),
             amount: amt,
+            status: Status::Default,
             // acct_id: 
         }
     }
@@ -104,19 +113,23 @@ impl Account {
             acct_type: acct_type.to_string(),
             user_id: user_id.to_string(),
             card_limit: card_limit,
+            status: Status::Default,
         }
     }
 }
 
 impl From<&Account> for ListItem<'_> {
     fn from(value: &Account) -> Self {
-        // let line = match value.status {
-        //     Status::Todo => Line::styled(format!(" ☐ {}", value.todo), TEXT_FG_COLOR),
-        //     Status::Completed => {
-        //         Line::styled(format!(" ✓ {}", value.todo), COMPLETED_TEXT_FG_COLOR)
-        //     }
-        // };
-        let line = Line::styled(format!(" ✓ {}: {}, {}", value.acct_id, value.acct_name, value.acct_type), COMPLETED_TEXT_FG_COLOR);
+        let line = match value.status {
+            // Status::Default => Line::styled(format!(" ☐ {}", value.todo), TEXT_FG_COLOR),
+            // Status::Selected => {
+            //     Line::styled(format!(" ✓ {}", value.todo), COMPLETED_TEXT_FG_COLOR)
+            // }
+            Status::Default => Line::styled(format!(" ☐ {}", value.acct_id), TEXT_FG_COLOR),
+            Status::Selected => {
+                Line::styled(format!(" ✓ {}", value.acct_id), COMPLETED_TEXT_FG_COLOR)}
+        };
+        // let line = Line::styled(format!(" ✓ {}: {}, {}", value.acct_id, value.acct_name, value.acct_type), COMPLETED_TEXT_FG_COLOR);
         ListItem::new(line)
     }
 }
@@ -146,7 +159,7 @@ pub struct App {
     /// List of user accounts
     pub accounts: AccountList,
     /// Selected account_id
-    pub account_selected: String,
+    pub account_selected_idx: usize,
     /// List of transaction history
     pub trans_history: TransList,
     /// Current input mode
@@ -163,7 +176,7 @@ impl Default for App {
             running: true,
             counter: 0,
             username: String::new(), // Default to an empty string
-            account_selected: String::new(), // Default to an empty string
+            account_selected_idx: 0, // Default to an empty string
             accounts: AccountList::from_iter([
                 (
                     "tina's account_id",
@@ -293,6 +306,28 @@ impl App {
         self.input.clear();
         self.input_mode = InputMode::Normal;
         // self.reset_cursor();
+    }
+
+    pub fn select_first_account(&mut self) {
+        // self.account_selected_idx = ( self.account_selected_idx + 1 )% self.accounts.items.length
+        // self.accounts.state.select_none();
+        self.accounts.state.select_first();
+        self.input_mode = InputMode::ViewAccountList;
+    }
+
+    pub fn select_next_account(&mut self) {
+        // self.account_selected_idx = ( self.account_selected_idx + 1 )% self.accounts.items.length
+        // self.accounts.state.select_none();
+        self.accounts.state.select_next();
+    }
+
+    pub fn select_prev_account(&mut self) {
+        self.accounts.state.select_previous();
+    }
+
+    pub fn stop_select_account(&mut self) {
+        self.accounts.state.select(None);
+        self.input_mode = InputMode::Normal;
     }
 
     const fn alternate_colors(i: usize) -> Color {
