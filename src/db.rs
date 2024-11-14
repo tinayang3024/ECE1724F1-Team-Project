@@ -1,7 +1,7 @@
 use sqlx::postgres::PgPool;
 
 pub const PG_CONNECTION_STR: &str =
-    "postgres://postgres:password@localhost/financedb";
+    "postgres://postgres:1724_password@database-1.chmwu04uiq6g.us-east-2.rds.amazonaws.com:5432/financedb";
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct User {
