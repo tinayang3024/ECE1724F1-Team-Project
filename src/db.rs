@@ -1,7 +1,15 @@
 use sqlx::postgres::PgPool;
+use strum_macros::{Display, EnumString};
 
 pub const PG_CONNECTION_STR: &str =
     "postgres://postgres:1724_password@database-1.chmwu04uiq6g.us-east-2.rds.amazonaws.com:5432/financedb";
+
+#[derive(Display, EnumString)]
+pub enum AccountType {
+    Chequing,
+    Credit,
+    // Savings,
+}
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct User {
@@ -54,7 +62,7 @@ FROM users
     .await?;
 
     for user in users {
-        println!("Got username: {} with id: {}", user.username, user.user_id);
+        println!("::[DEBUG] Got username: {} with id: {}", user.username, user.user_id);
     }
 
     Ok(())
@@ -79,3 +87,26 @@ WHERE username=($1)
 /*****************************************************************************/
 /*                               Account APIs                                */
 /*****************************************************************************/
+
+pub async fn account_create(pool: &PgPool,
+                            username: &str,
+                            account_name: &str,
+                            account_type: &AccountType,
+                            account_limit: i32) -> Result<i64, sqlx::Error> {
+    let user_id = user_get_one(pool, username).await?;
+    let rec: (i64, ) = sqlx::query_as(
+        r#"
+INSERT INTO accounts (user_id, account_name, account_type, account_limit)
+VALUES ($1, $2, $3, $4)
+RETURNING account_id
+        "#
+    )
+    .bind(user_id)
+    .bind(account_name)
+    .bind(account_type.to_string())
+    .bind(account_limit)
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec.0)
+}
