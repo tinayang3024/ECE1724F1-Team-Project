@@ -9,7 +9,9 @@ async fn main() -> Result<(), sqlx::Error> {
 
     // Make a simple query to return the given parameter
     db::user_get_all(&pool).await?;
-    db::user_get_one(&pool, "user1").await?;
+    // db::user_get_one(&pool, "user1").await?;
+    // db::account_get_all(&pool).await?;
+    // db::account_get_one(&pool, "user1", "account1").await?;
     // db::user_get_one(&pool, "user3").await?; // Will error out
     
     // Example usages

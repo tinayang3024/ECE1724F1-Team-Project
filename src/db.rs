@@ -17,6 +17,15 @@ pub struct User {
     username: String,
 }
 
+#[derive(sqlx::FromRow, Debug)]
+pub struct Account {
+    account_id: i64,
+    user_id: i64,
+    account_name: String,
+    account_type: String,
+    account_limit: i32,
+}
+
 /*****************************************************************************/
 /*                                User APIs                                  */
 /*****************************************************************************/
@@ -142,4 +151,49 @@ WHERE account_id=($2)
     .await?;
 
     Ok(())
+}
+
+pub async fn account_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
+    let accounts: Vec<Account> = sqlx::query_as(
+        r#"
+SELECT *
+FROM accounts
+        "#
+    )
+    .fetch_all(pool)
+    .await?;
+
+    for account in accounts {
+        println!(
+            "::[DEBUG] Got account_id: {}, user_id: {}, account_name:{}, account_type: {}, account_limit: {}",
+            account.account_id, account.user_id, account.account_name,
+            account.account_type, account.account_limit
+        );
+    }
+
+    Ok(())
+}
+
+pub async fn account_get_one(pool: &PgPool,
+                             username: &str,
+                             account_name: &str) -> Result<i64, sqlx::Error> {
+    let user_id = user_get_one(pool, username).await?;
+    let account: Account = sqlx::query_as(
+        r#"
+SELECT *
+FROM accounts
+WHERE user_id=($1) AND account_name=($2)
+        "#
+    )
+    .bind(user_id)
+    .bind(account_name)
+    .fetch_one(pool)
+    .await?;
+
+    println!(
+        "::[DEBUG] Found account_id: {} with user_id: {} and account_name: {}",
+        account.account_id, account.user_id, account.account_name
+    );
+
+    Ok(account.account_id)
 }
