@@ -60,8 +60,8 @@ FROM users
     Ok(())
 }
 
-pub async fn user_get_one(pool: &PgPool, username: &str) -> Result<(), sqlx::Error> {
-    let user_box: Option<User> = sqlx::query_as(
+pub async fn user_get_one(pool: &PgPool, username: &str) -> Result<i64, sqlx::Error> {
+    let user: User = sqlx::query_as(
         r#"
 SELECT *
 FROM users
@@ -69,16 +69,11 @@ WHERE username=($1)
         "#
     )
     .bind(username)
-    .fetch_optional(pool)
+    .fetch_one(pool)
     .await?;
 
-    if let Some(user) = user_box {
-        println!("Found user_id: {} from username: {}", user.user_id, user.username);
-    } else {
-        println!("Username: {} not found", username);
-    }
-
-    Ok(())
+    println!("::[DEBUG] Found user_id: {} from username: {}", user.user_id, user.username);
+    Ok(user.user_id)
 }
 
 /*****************************************************************************/
