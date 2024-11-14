@@ -110,3 +110,36 @@ RETURNING account_id
 
     Ok(rec.0)
 }
+
+pub async fn account_delete(pool: &PgPool, account_id: i64) -> Result<u64, sqlx::Error> {
+    let rows = sqlx::query(
+        r#"
+DELETE FROM accounts
+WHERE account_id=($1)
+        "#
+    )
+    .bind(account_id)
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    Ok(rows)
+}
+
+pub async fn account_limit_update(pool: &PgPool,
+                                  account_id: i64,
+                                  account_limit: i32) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+UPDATE accounts
+SET account_limit=($1)
+WHERE account_id=($2)
+        "#
+    )
+    .bind(account_limit)
+    .bind(account_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}

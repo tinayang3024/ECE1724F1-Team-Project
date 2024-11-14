@@ -23,6 +23,9 @@ async fn main() -> Result<(), sqlx::Error> {
     // let at: db::AccountType = db::AccountType::from_str("Chequing").unwrap();
     // let id = db::account_create(&pool, "user1", "account2", &at, 5000).await?;
     // println!("Created account with id {}", id);
+    // let row = db::account_delete(&pool, 3).await?;
+    // println!("Deleted account 3, {} row(s) deleted", row);
+    // db::account_limit_update(&pool, 1, 5000).await?;
 
     Ok(())
 }
