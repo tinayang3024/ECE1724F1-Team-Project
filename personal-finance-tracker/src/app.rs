@@ -1,5 +1,5 @@
 use std::error;
-use crate::input::InputMode;
+use crate::input::{ InputMode, Page, InputContent, ListType };
 // use ratatui::widgets::ListState;
 
 use ratatui::{
@@ -23,32 +23,32 @@ use ratatui::{
 /// Application result type.
 pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum Status {
-    Selected,
-    Default,
-}
+// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+// enum Status {
+//     Selected,
+//     Default,
+// }
 
-#[derive(Debug)]
-struct TransRecord {
-    transaction_id: String,
-    timestamp: String,
-    trans_type: String, // expense or income
-    category: String,
-    description: String,
-    amount: f64,
+#[derive(Debug, PartialEq, Clone)]
+pub struct TransRecord {
+    pub transaction_id: String,
+    pub timestamp: String,
+    pub trans_type: String, // expense or income
+    pub category: String,
+    pub description: String,
+    pub amount: f64,
     // acct_id: Int, // ? 
-    status: Status,
+    // status: Status, // no need
 }
 
-#[derive(Debug)]
-struct Account {
-    acct_id: String, 
-    acct_name: String,
-    acct_type: String, // Credit or Chequing or Savings?
-    user_id: String,
-    card_limit: f64,
-    status: Status
+#[derive(Debug, PartialEq, Clone)]
+pub struct Account {
+    pub acct_id: String, 
+    pub acct_name: String,
+    pub acct_type: String, // Credit or Chequing or Savings?
+    pub user_id: String,
+    pub card_limit: f64,
+    // pub status: Status
 }
 
 struct TransList {
@@ -81,7 +81,7 @@ impl TransRecord {
             category: category.to_string(),
             description: descrip.to_string(),
             amount: amt,
-            status: Status::Default,
+            // status: Status::Default,
             // acct_id: 
         }
     }
@@ -113,23 +113,23 @@ impl Account {
             acct_type: acct_type.to_string(),
             user_id: user_id.to_string(),
             card_limit: card_limit,
-            status: Status::Default,
+            // status: Status::Default,
         }
     }
 }
 
 impl From<&Account> for ListItem<'_> {
     fn from(value: &Account) -> Self {
-        let line = match value.status {
-            // Status::Default => Line::styled(format!(" ☐ {}", value.todo), TEXT_FG_COLOR),
-            // Status::Selected => {
-            //     Line::styled(format!(" ✓ {}", value.todo), COMPLETED_TEXT_FG_COLOR)
-            // }
-            Status::Default => Line::styled(format!(" ☐ {}", value.acct_id), TEXT_FG_COLOR),
-            Status::Selected => {
-                Line::styled(format!(" ✓ {}", value.acct_id), COMPLETED_TEXT_FG_COLOR)}
-        };
-        // let line = Line::styled(format!(" ✓ {}: {}, {}", value.acct_id, value.acct_name, value.acct_type), COMPLETED_TEXT_FG_COLOR);
+        // let line = match value.status {
+        //     // Status::Default => Line::styled(format!(" ☐ {}", value.todo), TEXT_FG_COLOR),
+        //     // Status::Selected => {
+        //     //     Line::styled(format!(" ✓ {}", value.todo), COMPLETED_TEXT_FG_COLOR)
+        //     // }
+        //     Status::Default => Line::styled(format!(" ☐ {}", value.acct_id), TEXT_FG_COLOR),
+        //     Status::Selected => {
+        //         Line::styled(format!(" ✓ {}", value.acct_id), COMPLETED_TEXT_FG_COLOR)}
+        // };
+        let line = Line::styled(format!(" - {}: {}, {}", value.acct_id, value.acct_name, value.acct_type), COMPLETED_TEXT_FG_COLOR);
         ListItem::new(line)
     }
 }
@@ -142,7 +142,7 @@ impl From<&TransRecord> for ListItem<'_> {
         //         Line::styled(format!(" ✓ {}", value.todo), COMPLETED_TEXT_FG_COLOR)
         //     }
         // };
-        let line = Line::styled(format!(" ✓ {}: {}, {}", value.transaction_id, value.trans_type, value.amount), COMPLETED_TEXT_FG_COLOR);
+        let line = Line::styled(format!(" - {}: {}, {}", value.transaction_id, value.trans_type, value.amount), COMPLETED_TEXT_FG_COLOR);
         ListItem::new(line)
     }
 }
@@ -159,15 +159,26 @@ pub struct App {
     /// List of user accounts
     pub accounts: AccountList,
     /// Selected account_id
-    pub account_selected_idx: usize,
+    // pub account_selected_idx: usize,
     /// List of transaction history
     pub trans_history: TransList,
+    /// new accounts
+    pub new_account: Account,
+    pub new_trans: TransRecord,
     /// Current input mode
     pub input_mode: InputMode,
     /// Current input
     pub input: String,
     /// input index
     pub character_index: usize,
+
+    pub page: Page,
+
+    pub input_content: InputContent,
+    pub list_content: ListType,
+
+    pub new_trans_question_list: Vec<InputContent>,
+    pub new_acct_question_list: Vec<InputContent>,
 }
 
 impl Default for App {
@@ -176,7 +187,7 @@ impl Default for App {
             running: true,
             counter: 0,
             username: String::new(), // Default to an empty string
-            account_selected_idx: 0, // Default to an empty string
+            // account_selected_idx: 0, // Default to an empty string
             accounts: AccountList::from_iter([
                 (
                     "tina's account_id",
@@ -192,7 +203,6 @@ impl Default for App {
                     "Credit",
                     200.0,
                 ),
-                
             ]),   
             trans_history: TransList::from_iter([
                 (
@@ -213,9 +223,38 @@ impl Default for App {
                 ),
                 
             ]),  
+            new_account: Account::new(
+                "",
+                "",
+                "",
+                "",
+                0.0,
+            ),
+            new_trans: TransRecord::new(
+                "",
+                "",
+                "",
+                "",
+                "",
+                0.0,
+            ),
             input_mode: InputMode::Normal,   // Default to not inputting
             input: String::new(), // Default to an empty string
             character_index: 0,
+            page: Page::Login,
+            input_content: InputContent::Username,
+            list_content: ListType::Acct,
+            new_trans_question_list: vec![
+                InputContent::TransactionDescription,
+                InputContent::TransactionType,
+                InputContent::TransactionAmount,
+                InputContent::TransactionCategory,
+            ],
+            new_acct_question_list: vec![
+                InputContent::AccountName,
+                InputContent::AccountType,
+                InputContent::AccountLimit,
+            ],
         }
     }
 }
@@ -302,32 +341,185 @@ impl App {
 
     pub fn submit_message(&mut self) {
         // self.messages.push(self.input.clone());
-        self.username = self.input.clone();
+        match self.input_content {
+            InputContent::Username => {
+                self.username = self.input.clone();
+                self.input_content = InputContent::AccountName;
+                self.input_mode = InputMode::Normal;
+                self.page = Page::AccountDetails;
+            },
+            InputContent::AccountID => self.new_account.acct_id = self.input.clone(),
+            InputContent::AccountName => self.new_account.acct_name = self.input.clone(),
+            InputContent::AccountType => self.new_account.acct_type = self.input.clone(),
+            InputContent::AccountLimit => self.new_account.card_limit = self.input.clone().parse::<f64>().unwrap(),
+            InputContent::TransactionAmount => self.new_trans.amount = self.input.clone().parse::<f64>().unwrap(),
+            InputContent::TransactionCategory => self.new_trans.category = self.input.clone(),
+            InputContent::TransactionDescription => self.new_trans.description = self.input.clone(),
+            InputContent::TransactionType => self.new_trans.trans_type = self.input.clone(),
+        };
         self.input.clear();
         self.input_mode = InputMode::Normal;
-        // self.reset_cursor();
     }
 
-    pub fn select_first_account(&mut self) {
-        // self.account_selected_idx = ( self.account_selected_idx + 1 )% self.accounts.items.length
-        // self.accounts.state.select_none();
-        self.accounts.state.select_first();
+    pub fn select_first(&mut self) {
+        match self.list_content {
+            ListType::Acct => {
+                self.accounts.state.select_first();
+            },
+            ListType::Trans => {
+                self.trans_history.state.select_first();
+            }
+        }
         self.input_mode = InputMode::ViewAccountList;
     }
 
-    pub fn select_next_account(&mut self) {
-        // self.account_selected_idx = ( self.account_selected_idx + 1 )% self.accounts.items.length
-        // self.accounts.state.select_none();
-        self.accounts.state.select_next();
+    pub fn select_next(&mut self) {
+        match self.list_content {
+            ListType::Acct => {
+                self.accounts.state.select_next();
+            },
+            ListType::Trans => {
+                self.trans_history.state.select_next();
+            }
+        }
     }
 
-    pub fn select_prev_account(&mut self) {
-        self.accounts.state.select_previous();
+    pub fn select_prev(&mut self) {
+        match self.list_content {
+            ListType::Acct => {
+                self.accounts.state.select_previous();
+            },
+            ListType::Trans => {
+                self.trans_history.state.select_previous();
+            }
+        }
     }
 
-    pub fn stop_select_account(&mut self) {
-        self.accounts.state.select(None);
+    pub fn confirm_selection(&mut self) {
+        match self.list_content {
+            ListType::Acct => {
+                let idx = self.accounts.state.selected().unwrap();
+                self.new_account = self.accounts.items[idx].clone();
+            },
+            ListType::Trans => {
+                let idx = self.trans_history.state.selected().unwrap();
+                self.new_trans = self.trans_history.items[idx].clone();
+                self.input_content = InputContent::TransactionDescription;
+                self.input_mode = InputMode::Normal;
+                self.page = Page::EditTransaction;
+            }
+        }
+    }
+
+    pub fn stop_select(&mut self) {
+        match self.list_content {
+            ListType::Acct => {
+                self.accounts.state.select(None);
+            },
+            ListType::Trans => {
+                self.trans_history.state.select(None);
+            }
+        }
         self.input_mode = InputMode::Normal;
+    }
+
+    pub fn find_index(vec: &Vec<InputContent>, target: InputContent) -> i32 {
+        // Find the index of the target element
+        if let Some(index) = vec.iter().position(|x| *x == target) {
+            // Return the next element, if it exists
+            index as i32
+        } else {
+            // If the target is not found, return None
+            -1
+        }
+    }
+
+    pub fn find_next_index(vec: &Vec<InputContent>, target: InputContent) -> i32 {
+        // Find the index of the target element
+        let index = App::find_index(vec, target);
+        if index == -1 {
+            -1
+        } else if index ==  (vec.len()-1).try_into().unwrap() {
+            index
+        } else {
+            index + 1
+        }
+
+        // if let Some(index) = vec.iter().position(|x| *x == target) {
+        //     // Return the next element, if it exists
+        //     vec.get(index + 1)
+        // } else {
+        //     // If the target is not found, return None
+        //     None
+        // }
+    }
+
+    pub fn find_prev_index(vec: &Vec<InputContent>, target: InputContent) -> i32 {
+        // Find the index of the target element
+        let index = App::find_index(vec, target);
+        if index == -1 {
+            -1
+        } else if index == 0 {
+            0
+        } else {
+            index - 1
+        }
+
+        // if let Some(index) = vec.iter().position(|x| *x == target) {
+        //     // Return the next element, if it exists
+        //     vec.get(index + 1)
+        // } else {
+        //     // If the target is not found, return None
+        //     None
+        // }
+    }
+
+    pub fn next_input(&mut self) {
+        let question_list = match self.page {
+            Page::NewAccount | Page::AccountDetails => {
+                self.new_acct_question_list.clone()
+            }, 
+            Page::NewTransaction | Page::EditTransaction => {
+                self.new_trans_question_list.clone()
+            },
+            _ => {Vec::new()}
+        };
+        self.input_content = question_list[App::find_next_index(&question_list, self.input_content.clone()) as usize].clone();
+        // let mut found = false;
+        // for window in question_list.windows(2) {
+        //     if window[0] == self.input_content {
+        //         // return Some(&window[1]); 
+        //         self.input_content = window[1].clone();
+        //         found = true;
+        //     }
+        // }
+        // if !found {
+        //     self.input_content = (*question_list.last().unwrap()).clone();
+        // }
+    }
+
+    pub fn prev_input(&mut self) {
+        let question_list = match self.page {
+            Page::NewAccount | Page::AccountDetails  => {
+                self.new_acct_question_list.clone()
+            }, 
+            Page::NewTransaction | Page::EditTransaction => {
+                self.new_trans_question_list.clone()
+            },
+            _ => {Vec::new()}
+        };
+        self.input_content = question_list[App::find_prev_index(&question_list, self.input_content.clone()) as usize].clone();
+        // let mut found = false;
+        // for window in question_list.windows(2) {
+        //     if window[1] == self.input_content {
+        //         // return Some(&window[1]); 
+        //         self.input_content = window[1].clone();
+        //         found = true;
+        //     }
+        // }
+        // if !found {
+        //     self.input_content = question_list[0].clone();
+        // }
     }
 
     const fn alternate_colors(i: usize) -> Color {
@@ -373,7 +565,7 @@ impl App {
 
     pub fn render_trans_list(&mut self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
-            .title(Line::raw("Account List").centered())
+            .title(Line::raw("Transaction Records").centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
             .border_style(TODO_HEADER_STYLE)

@@ -56,12 +56,42 @@ use ratatui::{
 //     /// History of recorded messages
 //     messages: Vec<String>,
 // }
-
+#[derive(Debug, PartialEq)]
 pub enum InputMode {
     Normal,
     Editing,
-    ViewAccountList,
+    ViewAccountList
 }
+
+#[derive(Debug, PartialEq)]
+pub enum Page {
+    Login,
+    AccountDetails,
+    NewAccount,
+    NewTransaction,
+    // EditAccount, // may not need
+    EditTransaction,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum InputContent {
+    Username,
+    AccountID,
+    AccountName,
+    AccountType,
+    AccountLimit,
+    TransactionType,
+    TransactionAmount,
+    TransactionCategory,
+    TransactionDescription,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ListType {
+    Acct,
+    Trans,
+}
+
 
 // impl App {
 //     const fn new() -> Self {
