@@ -1,6 +1,20 @@
 use std::error;
-use crate::input::{ InputMode, Page, InputContent, ListType };
-// use ratatui::widgets::ListState;
+use crate::input::{ 
+    InputMode, 
+    Page, 
+    InputContent,
+    ListType,
+    TransRecord,
+    Account,
+    TransList,
+    AccountList,
+    TODO_HEADER_STYLE,
+    NORMAL_ROW_BG,
+    ALT_ROW_BG_COLOR,
+    SELECTED_STYLE,
+    TEXT_FG_COLOR,
+    COMPLETED_TEXT_FG_COLOR,
+ };
 
 use ratatui::{
     buffer::Buffer,
@@ -19,133 +33,8 @@ use ratatui::{
     DefaultTerminal,
 };
 
-
 /// Application result type.
 pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
-
-// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-// enum Status {
-//     Selected,
-//     Default,
-// }
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct TransRecord {
-    pub transaction_id: String,
-    pub timestamp: String,
-    pub trans_type: String, // expense or income
-    pub category: String,
-    pub description: String,
-    pub amount: f64,
-    // acct_id: Int, // ? 
-    // status: Status, // no need
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct Account {
-    pub acct_id: String, 
-    pub acct_name: String,
-    pub acct_type: String, // Credit or Chequing or Savings?
-    pub user_id: String,
-    pub card_limit: f64,
-    // pub status: Status
-}
-
-struct TransList {
-    items: Vec<TransRecord>,
-    state: ListState,
-}
-
-struct AccountList {
-    items: Vec<Account>,
-    state: ListState,
-}
-
-impl FromIterator<(&'static str, &'static str, &'static str, &'static str, &'static str, f64)> for TransList {
-    fn from_iter<I: IntoIterator<Item = (&'static str, &'static str, &'static str, &'static str, &'static str, f64)>>(iter: I) -> Self {
-        let items = iter
-            .into_iter()
-            .map(|(trans_id, timestamp, trans_type, category, descrip, amt)| TransRecord::new(trans_id, timestamp, trans_type, category, descrip, amt))
-            .collect();
-        let state = ListState::default();
-        Self { items, state }
-    }
-}
-
-impl TransRecord {
-    fn new(trans_id: &str, timestamp: &str, trans_type: &str, category: &str, descrip: &str, amt: f64) -> Self {
-        Self {
-            transaction_id: trans_id.to_string(),
-            timestamp: timestamp.to_string(),
-            trans_type: trans_type.to_string(),
-            category: category.to_string(),
-            description: descrip.to_string(),
-            amount: amt,
-            // status: Status::Default,
-            // acct_id: 
-        }
-    }
-}
-
-const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
-const NORMAL_ROW_BG: Color = SLATE.c950;
-const ALT_ROW_BG_COLOR: Color = SLATE.c900;
-const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
-const TEXT_FG_COLOR: Color = SLATE.c200;
-const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
-
-impl FromIterator<(&'static str, &'static str, &'static str, &'static str, f64)> for AccountList {
-    fn from_iter<I: IntoIterator<Item = (&'static str, &'static str, &'static str, &'static str, f64)>>(iter: I) -> Self {
-        let items = iter
-            .into_iter()
-            .map(|(acct_id, acct_name, user_id, acct_type, card_limit)| Account::new(acct_id, acct_name, user_id, acct_type, card_limit))
-            .collect();
-        let state = ListState::default();
-        Self { items, state }
-    }
-}
-
-impl Account {
-    fn new(acct_id: &str, account_name: &str, user_id: &str, acct_type: &str, card_limit: f64) -> Self {
-        Self {
-            acct_id: acct_id.to_string(),
-            acct_name: account_name.to_string(),
-            acct_type: acct_type.to_string(),
-            user_id: user_id.to_string(),
-            card_limit: card_limit,
-            // status: Status::Default,
-        }
-    }
-}
-
-impl From<&Account> for ListItem<'_> {
-    fn from(value: &Account) -> Self {
-        // let line = match value.status {
-        //     // Status::Default => Line::styled(format!(" ☐ {}", value.todo), TEXT_FG_COLOR),
-        //     // Status::Selected => {
-        //     //     Line::styled(format!(" ✓ {}", value.todo), COMPLETED_TEXT_FG_COLOR)
-        //     // }
-        //     Status::Default => Line::styled(format!(" ☐ {}", value.acct_id), TEXT_FG_COLOR),
-        //     Status::Selected => {
-        //         Line::styled(format!(" ✓ {}", value.acct_id), COMPLETED_TEXT_FG_COLOR)}
-        // };
-        let line = Line::styled(format!(" - {}: {}, {}", value.acct_id, value.acct_name, value.acct_type), COMPLETED_TEXT_FG_COLOR);
-        ListItem::new(line)
-    }
-}
-
-impl From<&TransRecord> for ListItem<'_> {
-    fn from(value: &TransRecord) -> Self {
-        // let line = match value.status {
-        //     Status::Todo => Line::styled(format!(" ☐ {}", value.todo), TEXT_FG_COLOR),
-        //     Status::Completed => {
-        //         Line::styled(format!(" ✓ {}", value.todo), COMPLETED_TEXT_FG_COLOR)
-        //     }
-        // };
-        let line = Line::styled(format!(" - {}: {}, {}", value.transaction_id, value.trans_type, value.amount), COMPLETED_TEXT_FG_COLOR);
-        ListItem::new(line)
-    }
-}
 
 /// Application.
 // #[derive(Debug)]
@@ -260,31 +149,15 @@ impl Default for App {
 }
 
 impl App {
-    /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         Self::default()
     }
-
-    /// Handles the tick event of the terminal.
-    pub fn tick(&self) {}
-
-    /// Set running to false to quit the application.
+    
     pub fn quit(&mut self) {
         self.running = false;
     }
 
-    pub fn increment_counter(&mut self) {
-        if let Some(res) = self.counter.checked_add(1) {
-            self.counter = res;
-        }
-    }
-
-    pub fn decrement_counter(&mut self) {
-        if let Some(res) = self.counter.checked_sub(1) {
-            self.counter = res;
-        }
-    }
-
+    // TEXT INPUT RELATED FUNCTIONS
     pub fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }
@@ -299,10 +172,6 @@ impl App {
         self.character_index = self.clamp_cursor(cursor_moved_right);
     }
 
-    /// Returns the byte index based on the character position.
-    ///
-    /// Since each character in a string can be contain multiple bytes, it's necessary to calculate
-    /// the byte index based on the index of the character.
     pub fn byte_index(&self) -> usize {
         self.input
             .char_indices()
@@ -340,7 +209,6 @@ impl App {
     }
 
     pub fn submit_message(&mut self) {
-        // self.messages.push(self.input.clone());
         match self.input_content {
             InputContent::Username => {
                 self.username = self.input.clone();
@@ -361,6 +229,8 @@ impl App {
         self.input_mode = InputMode::Normal;
     }
 
+
+    // LIST RELATED FUNCTIONS
     pub fn select_first(&mut self) {
         match self.list_content {
             ListType::Acct => {
@@ -444,14 +314,6 @@ impl App {
         } else {
             index + 1
         }
-
-        // if let Some(index) = vec.iter().position(|x| *x == target) {
-        //     // Return the next element, if it exists
-        //     vec.get(index + 1)
-        // } else {
-        //     // If the target is not found, return None
-        //     None
-        // }
     }
 
     pub fn find_prev_index(vec: &Vec<InputContent>, target: InputContent) -> i32 {
@@ -464,14 +326,6 @@ impl App {
         } else {
             index - 1
         }
-
-        // if let Some(index) = vec.iter().position(|x| *x == target) {
-        //     // Return the next element, if it exists
-        //     vec.get(index + 1)
-        // } else {
-        //     // If the target is not found, return None
-        //     None
-        // }
     }
 
     pub fn next_input(&mut self) {
@@ -485,17 +339,6 @@ impl App {
             _ => {Vec::new()}
         };
         self.input_content = question_list[App::find_next_index(&question_list, self.input_content.clone()) as usize].clone();
-        // let mut found = false;
-        // for window in question_list.windows(2) {
-        //     if window[0] == self.input_content {
-        //         // return Some(&window[1]); 
-        //         self.input_content = window[1].clone();
-        //         found = true;
-        //     }
-        // }
-        // if !found {
-        //     self.input_content = (*question_list.last().unwrap()).clone();
-        // }
     }
 
     pub fn prev_input(&mut self) {
@@ -509,17 +352,6 @@ impl App {
             _ => {Vec::new()}
         };
         self.input_content = question_list[App::find_prev_index(&question_list, self.input_content.clone()) as usize].clone();
-        // let mut found = false;
-        // for window in question_list.windows(2) {
-        //     if window[1] == self.input_content {
-        //         // return Some(&window[1]); 
-        //         self.input_content = window[1].clone();
-        //         found = true;
-        //     }
-        // }
-        // if !found {
-        //     self.input_content = question_list[0].clone();
-        // }
     }
 
     const fn alternate_colors(i: usize) -> Color {
@@ -530,8 +362,9 @@ impl App {
         }
     }
 
+    // COMPONENT RENDERING FUNCTIONS
+    // account list 
     pub fn render_acct_list(&mut self, area: Rect, buf: &mut Buffer) {
-    // pub fn render_acct_list(&mut self, area: Rect) {
         let block = Block::new()
             .title(Line::raw("Associated Account List").centered())
             .borders(Borders::TOP)
@@ -539,7 +372,6 @@ impl App {
             .border_style(TODO_HEADER_STYLE)
             .bg(NORMAL_ROW_BG);
 
-        // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
             .accounts
             .items
@@ -551,18 +383,16 @@ impl App {
             })
             .collect();
 
-        // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
             .highlight_style(SELECTED_STYLE)
             .highlight_symbol(">")
             .highlight_spacing(HighlightSpacing::Always);
 
-        // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
-        // same method name `render`.
         StatefulWidget::render(list, area, buf, &mut self.accounts.state);
     }
 
+    // transaction list 
     pub fn render_trans_list(&mut self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
             .title(Line::raw("Transaction Records").centered())
@@ -571,7 +401,6 @@ impl App {
             .border_style(TODO_HEADER_STYLE)
             .bg(NORMAL_ROW_BG);
 
-        // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
             .trans_history
             .items
@@ -583,15 +412,12 @@ impl App {
             })
             .collect();
 
-        // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
             .highlight_style(SELECTED_STYLE)
             .highlight_symbol(">")
             .highlight_spacing(HighlightSpacing::Always);
 
-        // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
-        // same method name `render`.
         StatefulWidget::render(list, area, buf, &mut self.trans_history.state);
     }
     

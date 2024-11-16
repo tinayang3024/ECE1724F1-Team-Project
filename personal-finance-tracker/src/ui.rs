@@ -6,7 +6,22 @@ use ratatui::{
 };
 use ratatui::prelude::*;
 use crate::app::App;
-use crate::input::{ InputMode, InputContent, Page };
+use crate::input::{ 
+    InputMode, 
+    Page, 
+    InputContent,
+    ListType,
+    TransRecord,
+    Account,
+    TransList,
+    AccountList,
+    TODO_HEADER_STYLE,
+    NORMAL_ROW_BG,
+    ALT_ROW_BG_COLOR,
+    SELECTED_STYLE,
+    TEXT_FG_COLOR,
+    COMPLETED_TEXT_FG_COLOR,
+ };
 
 
 // not doing input validation for number inputs yet
@@ -18,7 +33,7 @@ pub fn render_input_field(app: &mut App, frame: &mut Frame, position: Rect, labe
         style = Style::default().fg(Color::Yellow);
     } else if app.input_content == content {
         line = format!("{}: {}", label, content_value);
-        style = Style::default().fg(Color::Red);
+        style = Style::default().fg(Color::LightCyan);
     } else {
         line = format!("{}: {}", label, content_value);
         style = Style::default();
@@ -31,16 +46,6 @@ pub fn render_input_field(app: &mut App, frame: &mut Frame, position: Rect, labe
 
 /// Renders the user interface widgets.
 pub fn render(app: &mut App, frame: &mut Frame) {
-    // This is where you add new widgets.
-    // See the following resources:
-    // - https://docs.rs/ratatui/latest/ratatui/widgets/index.html
-    // - https://github.com/ratatui/ratatui/tree/master/examples
-    // let vertical = Layout::vertical([
-    //     Constraint::Length(1),
-    //     Constraint::Max(3),
-    //     Constraint::Length(1),
-    //     Constraint::Min(0), // ignore remaining space
-    // ]);
     let vert_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![
@@ -49,15 +54,6 @@ pub fn render(app: &mut App, frame: &mut Frame) {
             Constraint::Percentage(70),
         ])
         .split(frame.area());
-
-    // let hor_layout = Layout::default()
-    //     .direction(Direction::Horizontal)
-    //     .constraints(vec![
-    //         Constraint::Percentage(10),
-    //         Constraint::Percentage(10),
-    //         Constraint::Percentage(80),
-    //     ])
-    //     .split(frame.area());
 
     let title = vert_layout[0];
     let subtitle = vert_layout[1];
@@ -75,7 +71,15 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     let right_content = content_layout[1];
 
     frame.render_widget(
-        Paragraph::new("Personal Financial Tracker").block(Block::bordered()),
+        Paragraph::new("Personal Financial Tracker")
+        .bold()
+        .style(
+            Style::new()
+                // .fg(Color::Cyan)
+                .bg(Color::Cyan),
+        )
+        .alignment(Alignment::Center)
+        .block(Block::bordered()),
         title,
     );
 
@@ -251,7 +255,6 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
 
             // right form
-            // render_input_field(app, frame, right_row_1_position, "Transaction ID".to_string(), app.new_trans.transaction_id.to_string(), InputContent::TransactionDescription);
             render_input_field(app, frame, right_row_1_position, "Transaction Description".to_string(), app.new_trans.description.to_string(), InputContent::TransactionDescription);
             render_input_field(app, frame, right_row_2_position, "Transaction Type".to_string(), app.new_trans.trans_type.to_string(), InputContent::TransactionType);
             render_input_field(app, frame, right_row_3_position, "Transaction Amount".to_string(), app.new_trans.amount.to_string(), InputContent::TransactionAmount);

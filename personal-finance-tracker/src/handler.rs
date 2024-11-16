@@ -1,10 +1,25 @@
 use crate::app::{App, AppResult};
 use crossterm::event::{KeyCode, KeyEventKind, KeyEvent, KeyModifiers};
-use crate::input::{ InputMode, Page, InputContent, ListType };
+use crate::input::{ 
+    InputMode, 
+    Page, 
+    InputContent,
+    ListType,
+    TransRecord,
+    Account,
+    TransList,
+    AccountList,
+    TODO_HEADER_STYLE,
+    NORMAL_ROW_BG,
+    ALT_ROW_BG_COLOR,
+    SELECTED_STYLE,
+    TEXT_FG_COLOR,
+    COMPLETED_TEXT_FG_COLOR,
+ };
 
-/// Handles the key events and updates the state of [`App`].
 pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
-    // todo: need to remove eventually***
+    // todo: this is here to ensure terminal cannot hang, 
+    //       need to remove eventually to allow entering q in Entering mode***
     if key_event.code == KeyCode::Char('q') {
         app.quit();
     }
@@ -52,15 +67,17 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                         app.input_content = InputContent::AccountName;
                     },
                     KeyCode::Char('t') => {
-                        // add new account
+                        // add new transaction
                         app.page = Page::NewTransaction;
                         app.input_content = InputContent::TransactionDescription;
                     },
                     KeyCode::Char('l') => {
+                        // iterate account list
                         app.list_content = ListType::Acct;
                         app.select_first();
                     },
                     KeyCode::Char('s') => {
+                        // iterate transaction list
                         app.list_content = ListType::Trans;
                         app.select_first();
                     },

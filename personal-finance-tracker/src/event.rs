@@ -5,13 +5,27 @@ use futures::{FutureExt, StreamExt};
 use tokio::sync::mpsc;
 
 use crate::app::AppResult;
-use crate::input::InputMode;
+use crate::input::{ 
+  InputMode, 
+  Page, 
+  InputContent,
+  ListType,
+  TransRecord,
+  Account,
+  TransList,
+  AccountList,
+  TODO_HEADER_STYLE,
+  NORMAL_ROW_BG,
+  ALT_ROW_BG_COLOR,
+  SELECTED_STYLE,
+  TEXT_FG_COLOR,
+  COMPLETED_TEXT_FG_COLOR,
+};
+
 
 /// Terminal events.
 #[derive(Clone, Copy, Debug)]
 pub enum Event {
-    /// Terminal tick.
-    // Tick,
     /// Key press.
     Key(KeyEvent),
     /// Mouse click/scroll.
@@ -48,9 +62,6 @@ impl EventHandler {
                   _ = _sender.closed() => {
                     break;
                   }
-                  // _ = tick_delay => {
-                  //   _sender.send(Event::Tick).unwrap();
-                  // }
                   Some(Ok(evt)) = crossterm_event => {
                     match evt {
                       CrosstermEvent::Key(key) => {
@@ -82,10 +93,6 @@ impl EventHandler {
         }
     }
 
-    /// Receive the next event from the handler thread.
-    ///
-    /// This function will always block the current thread if
-    /// there is no data available and it's possible for more data to be sent.
     pub async fn next(&mut self) -> AppResult<Event> {
         self.receiver
             .recv()
