@@ -1,3 +1,4 @@
+use sqlx::types::chrono;
 use sqlx::postgres::PgPool;
 use strum_macros::{Display, EnumString};
 
@@ -9,6 +10,12 @@ pub enum AccountType {
     Chequing,
     Credit,
     // Savings,
+}
+
+#[derive(Display, EnumString)]
+pub enum TransactionType {
+    Expenses,
+    Income,
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -24,6 +31,17 @@ pub struct Account {
     account_name: String,
     account_type: String,
     account_limit: i32,
+}
+
+#[derive(sqlx::FromRow, Debug)]
+pub struct Transaction {
+    transaction_id: i64,
+    transaction_date: chrono::NaiveDate,
+    transaction_type: String,
+    category: String,
+    amount: f32,
+    transaction_memo: String,
+    account_id: i64,
 }
 
 /*****************************************************************************/
@@ -196,4 +214,92 @@ WHERE user_id=($1) AND account_name=($2)
     );
 
     Ok(account.account_id)
+}
+
+/*****************************************************************************/
+/*                             Transaction APIs                              */
+/*****************************************************************************/
+
+pub async fn transaction_create(pool: &PgPool,
+                                transaction_date: &chrono::NaiveDate,
+                                transaction_type: &TransactionType,
+                                category: &str,
+                                amount: f32,
+                                transaction_memo: &str,
+                                account_id: i64) -> Result<i64, sqlx::Error> {
+    let rec: (i64, ) = sqlx::query_as(
+        r#"
+INSERT INTO transactions
+(transaction_date, transaction_type, category, amount, transaction_memo, account_id)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING transaction_id
+        "#
+    )
+    .bind(transaction_date)
+    .bind(transaction_type.to_string())
+    .bind(category)
+    .bind(amount)
+    .bind(transaction_memo)
+    .bind(account_id)
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec.0)
+}
+
+pub async fn transaction_delete(pool: &PgPool, transaction_id: i64) -> Result<u64, sqlx::Error> {
+    let rows = sqlx::query(
+        r#"
+DELETE FROM transactions
+WHERE transaction_id=($1)
+        "#
+    )
+    .bind(transaction_id)
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    Ok(rows)
+}
+
+pub async fn transaction_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
+    let transactions: Vec<Transaction> = sqlx::query_as(
+        r#"
+SELECT *
+FROM transactions
+        "#
+    )
+    .fetch_all(pool)
+    .await?;
+
+    for transaction in transactions {
+        println!(
+            "::[DEBUG] Got transaction_id: {}, transaction_date: {}, transaction_type:{}, category: {}, amount: {}, transaction_memo: {}, account_id: {}",
+            transaction.transaction_id, transaction.transaction_date, transaction.transaction_type,
+            transaction.category, transaction.amount, transaction.transaction_memo, transaction.account_id
+        );
+    }
+
+    Ok(())
+}
+
+pub async fn transaction_get_one(pool: &PgPool,
+                                 transaction_id: i64,) -> Result<i64, sqlx::Error> {
+    let transaction: Transaction = sqlx::query_as(
+        r#"
+SELECT *
+FROM transactions
+WHERE transaction_id=($1)
+        "#
+    )
+    .bind(transaction_id)
+    .fetch_one(pool)
+    .await?;
+
+    println!(
+        "::[DEBUG] Found transaction_id: {} with account_id: {}",
+        transaction.transaction_id, transaction.account_id
+    );
+
+    Ok(transaction.transaction_id)
 }

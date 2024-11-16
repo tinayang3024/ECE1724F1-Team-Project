@@ -1,4 +1,5 @@
 // use std::str::FromStr;
+// use sqlx::types::chrono;
 
 pub mod db;
 
@@ -12,6 +13,8 @@ async fn main() -> Result<(), sqlx::Error> {
     // db::user_get_one(&pool, "user1").await?;
     // db::account_get_all(&pool).await?;
     // db::account_get_one(&pool, "user1", "account1").await?;
+    // db::transaction_get_all(&pool).await?;
+    // db::transaction_get_one(&pool, 2).await?;
     // db::user_get_one(&pool, "user3").await?; // Will error out
     
     // Example usages
@@ -28,6 +31,13 @@ async fn main() -> Result<(), sqlx::Error> {
     // let row = db::account_delete(&pool, 3).await?;
     // println!("Deleted account 3, {} row(s) deleted", row);
     // db::account_limit_update(&pool, 1, 5000).await?;
+    // ---Transaction---
+    // let date = chrono::NaiveDate::from_ymd_opt(2024, 11, 10).unwrap();
+    // let tt: db::TransactionType = db::TransactionType::from_str("Expenses").unwrap();
+    // let id = db::transaction_create(&pool, &date, &tt, "Meal", 12.34, "Sushi Burrito", 1).await?;
+    // println!("Created transaction with id {}", id);
+    // let row = db::transaction_delete(&pool, 1).await?;
+    // println!("Deleted transaction 1, {} row(s) deleted", row);
 
     Ok(())
 }
