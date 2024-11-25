@@ -105,6 +105,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "client"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "futures",
+ "ratatui",
+ "tokio",
+]
+
+[[package]]
 name = "compact_str"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -416,16 +426,6 @@ name = "paste"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
-
-[[package]]
-name = "personal-finance-tracker"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "futures",
- "ratatui",
- "tokio",
-]
 
 [[package]]
 name = "pin-project-lite"
