@@ -56,10 +56,20 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                     KeyCode::Esc | KeyCode::Char('q') => {
                         app.quit();
                     },
-                    KeyCode::Up => app.prev_input(),
-                    KeyCode::Down => app.next_input(),
+                    KeyCode::Up => {
+                        if app.new_account.acct_id != "" {
+                            app.prev_input()
+                        }
+                    },
+                    KeyCode::Down => {
+                        if app.new_account.acct_id != "" {
+                            app.next_input()
+                        }
+                    },
                     KeyCode::Char('e') => {
-                        app.input_mode = InputMode::Editing;
+                        if app.new_account.acct_id != "" {
+                            app.input_mode = InputMode::Editing;
+                        }
                     },
                     KeyCode::Char('a') => {
                         // add new account
@@ -78,8 +88,10 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                     },
                     KeyCode::Char('s') => {
                         // iterate transaction list
-                        app.list_content = ListType::Trans;
-                        app.select_first();
+                        if app.new_account.acct_id != "" {
+                            app.list_content = ListType::Trans;
+                            app.select_first();
+                        }
                     },
                     _ => {}
                 },
