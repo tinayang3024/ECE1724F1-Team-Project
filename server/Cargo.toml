@@ -8,3 +8,6 @@ sqlx = { version = "0.8", features = [ "postgres", "runtime-tokio", "tls-native-
 tokio = { version = "1.41.0", features = ["full"] }
 strum = "0.26"
 strum_macros = "0.26"
+anyhow = "1.0.93"
+actix-web = "4.9.0"
+serde = "1.0.215"

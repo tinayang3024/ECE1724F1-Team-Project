@@ -1,6 +1,7 @@
 use sqlx::types::chrono;
 use sqlx::postgres::PgPool;
 use strum_macros::{Display, EnumString};
+use serde::Deserialize;
 
 pub const PG_CONNECTION_STR: &str =
     "postgres://postgres:1724_password@database-1.chmwu04uiq6g.us-east-2.rds.amazonaws.com:5432/financedb";
@@ -24,7 +25,7 @@ pub struct User {
     pub username: String,
 }
 
-#[derive(sqlx::FromRow, Debug)]
+#[derive(sqlx::FromRow, Debug, Serialize)]
 pub struct Account {
     pub account_id: i64,
     pub user_id: i64,
@@ -33,7 +34,7 @@ pub struct Account {
     pub account_limit: i32,
 }
 
-#[derive(sqlx::FromRow, Debug)]
+#[derive(sqlx::FromRow, Debug, Deserialize)]
 pub struct Transaction {
     pub transaction_id: i64,
     pub transaction_date: chrono::NaiveDate,
