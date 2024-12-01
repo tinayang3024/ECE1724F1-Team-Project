@@ -151,13 +151,7 @@ async fn delete_transaction(
 
 async fn query_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> impl Responder {
     match db::query_account_transactions(&pool, account_id.into_inner()).await {
-        Ok(result) => {
-            let result = result
-                .iter()
-                .map(|t| TransactionData::from_transaction(&t))
-                .collect::<Vec<TransactionData>>();
-            HttpResponse::Ok().json(result)
-        },
+        Ok(result) => HttpResponse::Ok().json(result),
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }
