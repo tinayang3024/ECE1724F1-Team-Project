@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS accounts
     user_id       BIGINT,
     account_name  TEXT,
     account_type  TEXT,
-    account_limit INT,
+    account_limit DOUBLE PRECISION,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS transactions
     transaction_date DATE,
     transaction_type TEXT,
     category         TEXT,
-    amount           REAL,
+    amount           DOUBLE PRECISION,
     transaction_memo TEXT,
     account_id       BIGINT,
     FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE CASCADE

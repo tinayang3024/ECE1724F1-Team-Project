@@ -1,7 +1,10 @@
 use actix_web::{web, App, HttpServer, Responder, HttpResponse};
+use serde::{Serialize, Deserialize};
 use sqlx::postgres::PgPool;
+use sqlx::types::chrono;
+use std::str::FromStr;
+
 use crate::db;
-use serde::Deserialize;
 
 /* #[derive(Deserialize)]
 struct UserData {
@@ -31,6 +34,40 @@ pub struct Transaction {
 #[derive(Deserialize)]
 struct UserData {
     username: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct AccountData {
+    account_id: Option<i64>,
+    username: String,
+    account_name: String,
+    account_type: String,
+    account_limit: f64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TransactionData {
+    transaction_id: Option<i64>,
+    transaction_date: String,
+    transaction_type: String,
+    category: String,
+    amount: f64,
+    transaction_memo: String,
+    account_id: i64,
+}
+
+impl TransactionData {
+    pub fn from_transaction(transaction: &db::Transaction) -> Self {
+        Self {
+            transaction_id: Some(transaction.transaction_id),
+            transaction_date: transaction.transaction_date.format("%Y-%m-%d").to_string(),
+            transaction_type: transaction.transaction_type.clone(),
+            category: transaction.category.clone(),
+            amount: transaction.amount,
+            transaction_memo: transaction.transaction_memo.clone(),
+            account_id: transaction.account_id,
+        }
+    }
 }
 
 pub async fn run_server(db_pool: PgPool) -> std::io::Result<()> {
@@ -70,13 +107,12 @@ async fn delete_user(pool: web::Data<PgPool>, user_data: web::Form<UserData>) ->
     }
 }
 
-async fn create_or_update_account(pool: web::Data<PgPool>, info: web::Json<db::Account>) -> impl Responder {
-    let account_id = &info.account_id;
-    // tbd: pass in either user id or username for account update
-    let username = &info.user_id;
+async fn create_or_update_account(pool: web::Data<PgPool>, info: web::Form<AccountData>) -> impl Responder {
+    let account_id = info.account_id;
+    let username = &info.username;
     let account_name = &info.account_name;
-    let account_type = &info.account_type;
-    let account_limit = &info.account_limit;
+    let account_type = &db::AccountType::from_str(&info.account_type).unwrap();
+    let account_limit = info.account_limit;
     match db::create_or_update_account(&pool, account_id, username, account_name, account_type, account_limit).await {
         Ok(result) => HttpResponse::Ok().json(result),
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
@@ -91,14 +127,15 @@ async fn delete_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> 
     }
 }
 
-async fn create_or_update_transaction(pool: web::Data<PgPool>, info: web::Json<db::Transaction>) -> impl Responder {
-    let transaction_date = &info.transaction_date;
-    let transaction_type = &info.transaction_type;
+async fn create_or_update_transaction(pool: web::Data<PgPool>, info: web::Form<TransactionData>) -> impl Responder {
+    let transaction_id = info.transaction_id;
+    let transaction_date = &chrono::NaiveDate::parse_from_str(&info.transaction_date, "%Y-%m-%d").unwrap();
+    let transaction_type = &db::TransactionType::from_str(&info.transaction_type).unwrap();
     let category = &info.category;
-    let amount = &info.amount;
+    let amount = info.amount;
     let transaction_memo = &info.transaction_memo;
-    let account_id = &info.account_id;
-    match db::create_or_update_transaction(&pool, transaction_date, transaction_type, category, amount, transaction_memo, account_id).await {
+    let account_id = info.account_id;
+    match db::create_or_update_transaction(&pool, transaction_id, transaction_date, transaction_type, category, amount, transaction_memo, account_id).await {
         Ok(result) => HttpResponse::Ok().json(result),
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
@@ -113,7 +150,13 @@ async fn delete_transaction(pool: web::Data<PgPool>, transaction_id: web::Path<i
 
 async fn query_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> impl Responder {
     match db::query_account_transactions(&pool, account_id.into_inner()).await {
-        Ok(result) => HttpResponse::Ok().json(result),
+        Ok(result) => {
+            let result = result
+                .iter()
+                .map(|t| TransactionData::from_transaction(&t))
+                .collect::<Vec<TransactionData>>();
+            HttpResponse::Ok().json(result)
+        },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }

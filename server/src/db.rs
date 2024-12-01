@@ -1,7 +1,7 @@
 use sqlx::types::chrono;
 use sqlx::postgres::PgPool;
 use strum_macros::{Display, EnumString};
-use serde::Deserialize;
+use serde::Serialize;
 
 pub const PG_CONNECTION_STR: &str =
     "postgres://postgres:1724_password@database-1.chmwu04uiq6g.us-east-2.rds.amazonaws.com:5432/financedb";
@@ -31,16 +31,16 @@ pub struct Account {
     pub user_id: i64,
     pub account_name: String,
     pub account_type: String,
-    pub account_limit: i32,
+    pub account_limit: f64,
 }
 
-#[derive(sqlx::FromRow, Debug, Deserialize)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct Transaction {
     pub transaction_id: i64,
     pub transaction_date: chrono::NaiveDate,
     pub transaction_type: String,
     pub category: String,
-    pub amount: f32,
+    pub amount: f64,
     pub transaction_memo: String,
     pub account_id: i64,
 }
@@ -64,7 +64,7 @@ pub async fn create_or_update_account(pool: &PgPool,
                                       username: &str,
                                       account_name: &str,
                                       account_type: &AccountType,
-                                      account_limit: i32)
+                                      account_limit: f64)
                                       -> Result<i64, sqlx::Error> {
     if let Some(aid) = account_id {
         account_update(pool, aid, account_name, account_limit).await
@@ -79,7 +79,7 @@ pub async fn create_or_update_transaction(pool: &PgPool,
                                           transaction_date: &chrono::NaiveDate,
                                           transaction_type: &TransactionType,
                                           category: &str,
-                                          amount: f32,
+                                          amount: f64,
                                           transaction_memo: &str,
                                           account_id: i64)
                                           -> Result<i64, sqlx::Error> {
@@ -213,7 +213,7 @@ async fn account_create(pool: &PgPool,
                         username: &str,
                         account_name: &str,
                         account_type: &AccountType,
-                        account_limit: i32) -> Result<i64, sqlx::Error> {
+                        account_limit: f64) -> Result<i64, sqlx::Error> {
     let user_id = user_get_one(pool, username).await?;
     let rec: (i64, ) = sqlx::query_as(
         r#"
@@ -251,7 +251,7 @@ WHERE account_id=($1)
 async fn account_update(pool: &PgPool,
                         account_id: i64,
                         account_name: &str,
-                        account_limit: i32) -> Result<i64, sqlx::Error> {
+                        account_limit: f64) -> Result<i64, sqlx::Error> {
     sqlx::query(
         r#"
 UPDATE accounts
@@ -337,7 +337,7 @@ async fn transaction_create(pool: &PgPool,
                             transaction_date: &chrono::NaiveDate,
                             transaction_type: &TransactionType,
                             category: &str,
-                            amount: f32,
+                            amount: f64,
                             transaction_memo: &str,
                             account_id: i64) -> Result<i64, sqlx::Error> {
     let rec: (i64, ) = sqlx::query_as(
@@ -381,7 +381,7 @@ async fn transaction_update(pool: &PgPool,
                             transaction_date: &chrono::NaiveDate,
                             transaction_type: &TransactionType,
                             category: &str,
-                            amount: f32,
+                            amount: f64,
                             transaction_memo: &str,
                             account_id: i64) -> Result<i64, sqlx::Error> {
     sqlx::query(
