@@ -115,9 +115,9 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     KeyCode::Enter => {
                         app.confirm_selection();
                         // not working right now, uncomment once fixed
-                        // if app.list_content == ListType::Acct {
-                        //     app.load_account_details().await;
-                        // }
+                        if app.list_content == ListType::Acct {
+                            app.load_account_details().await;
+                        }
                     },
                     _ => {}
                 },

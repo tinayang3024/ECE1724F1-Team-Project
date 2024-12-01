@@ -164,29 +164,108 @@ pub async fn create_or_update_transaction(trans_id: Option<String>,
 }
 
 
-// this function somehow doesn't work right now??? 
-pub async fn get_all_transactions(acct_id: &str) -> Vec<TransRecord> {
-    // TODO: need to convert card type number into text
-    let url = format!("{SERVER_BASE_URL}/query_account");
+// // this function somehow doesn't work right now??? 
+// pub async fn get_all_transactions(acct_id: &str) -> Vec<TransRecord> {
+//     // TODO: need to convert card type number into text
+//     let url = format!("{SERVER_BASE_URL}/query_account/{}", acct_id);
+//     let client = reqwest::Client::new();
+//     let resp = client
+//         .get(&url)
+//         .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+//         // .body(format!("{}", acct_id))
+//         .send()
+//         .await
+//         .unwrap();
+//     if !resp.status().is_success() {
+//         // Just panic for now
+//         panic!("Error: Reqwest failed {:?}", format!("account_id={}", acct_id));
+//     }
+
+//     let body = resp.text().await.unwrap();
+//     let transactions: Vec<ServerTransaction> = serde_json::from_str(&body).unwrap();
+//     let transactions = transactions
+//         .iter()
+//         .map(|a| a.to_transaction())
+//         .collect::<Vec<TransRecord>>();
+
+//     transactions
+// }
+
+pub async fn delete_user(username: &str) -> bool {
+    let url = format!("{SERVER_BASE_URL}/delete_user");
+    let client = reqwest::Client::new();
+    let resp = client
+        .delete(&url)
+        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(format!("username={}", username))
+        .send()
+        .await;
+    match resp {
+        Ok(response) => response.status().is_success(),
+        Err(e) => {
+            eprintln!("Error in delete_user: {}", e);
+            false
+        }
+    }
+}
+
+pub async fn delete_account(account_id: i64) -> bool {
+    let url = format!("{SERVER_BASE_URL}/delete_account/{}", account_id);
+    let client = reqwest::Client::new();
+    let resp = client
+        .delete(&url)
+        .send()
+        .await;
+    match resp {
+        Ok(response) => response.status().is_success(),
+        Err(e) => {
+            eprintln!("Error in delete_account: {}", e);
+            false
+        }
+    }
+}
+
+pub async fn delete_transaction(transaction_id: i64) -> bool {
+    let url = format!("{SERVER_BASE_URL}/delete_transaction/{}", transaction_id);
+    let client = reqwest::Client::new();
+    let resp = client
+        .delete(&url)
+        .send()
+        .await;
+    match resp {
+        Ok(response) => response.status().is_success(),
+        Err(e) => {
+            eprintln!("Error in delete_transaction: {}", e);
+            false
+        }
+    }
+}
+
+// not working
+pub async fn query_account(account_id: i64) -> Vec<TransRecord> {
+    let url = format!("{SERVER_BASE_URL}/query_account/{}", account_id);
     let client = reqwest::Client::new();
     let resp = client
         .get(&url)
-        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(format!("account_id={}", acct_id))
         .send()
-        .await
-        .unwrap();
+        .await;
+    let resp = match resp {
+        Ok(response) => response,
+        Err(e) => {
+            eprintln!("Error in query_account: {}", e);
+            panic!("Failed to query account for account_id={}", account_id);
+        }
+    };
+
     if !resp.status().is_success() {
-        // Just panic for now
-        panic!("Error: Reqwest failed {:?}", format!("account_id={}", acct_id));
+        eprintln!("Error: Server responded with status {} for account_id={}", resp.status(), account_id);
+        panic!("Reqwest failed for account_id={} resp={}", account_id, resp.status());
     }
 
     let body = resp.text().await.unwrap();
     let transactions: Vec<ServerTransaction> = serde_json::from_str(&body).unwrap();
-    let transactions = transactions
-        .iter()
-        .map(|a| a.to_transaction())
-        .collect::<Vec<TransRecord>>();
-
     transactions
+        .iter()
+        .map(|t| t.to_transaction())
+        .collect::<Vec<TransRecord>>()
 }

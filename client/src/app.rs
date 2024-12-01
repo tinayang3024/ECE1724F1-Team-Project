@@ -18,7 +18,7 @@ use crate::input::{
 use crate::client::{
     query_or_create_user,
     create_or_update_account,
-    get_all_transactions,
+    query_account,
 };
 
 use ratatui::{
@@ -275,9 +275,10 @@ impl App {
         self.debug_msg = acct_id_str;
     }
 
+    // not working
     pub async fn load_account_details(&mut self) {
-        let transactions = get_all_transactions(
-            self.new_account.acct_id.as_str()
+        let transactions = query_account(
+            self.new_account.acct_id.parse().unwrap()
         ).await;
         // for trans in transactions.iter() {
         //     self.trans_history.items.push(TransRecord::new(
