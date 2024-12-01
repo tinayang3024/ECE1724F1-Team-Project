@@ -1,19 +1,19 @@
-use sqlx::types::chrono;
+use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 use strum_macros::{Display, EnumString};
-use serde::Serialize;
 
 pub const PG_CONNECTION_STR: &str =
     "postgres://postgres:1724_password@database-1.chmwu04uiq6g.us-east-2.rds.amazonaws.com:5432/financedb";
 
-#[derive(Display, EnumString)]
+#[derive(Display, EnumString, Deserialize)]
 pub enum AccountType {
     Chequing,
     Credit,
     // Savings,
 }
 
-#[derive(Display, EnumString)]
+#[derive(Display, EnumString, Deserialize)]
 pub enum TransactionType {
     Expenses,
     Income,
@@ -34,10 +34,10 @@ pub struct Account {
     pub account_limit: f64,
 }
 
-#[derive(sqlx::FromRow, Debug)]
+#[derive(sqlx::FromRow, Debug, Serialize, Deserialize)]
 pub struct Transaction {
     pub transaction_id: i64,
-    pub transaction_date: chrono::NaiveDate,
+    pub transaction_date: NaiveDate,
     pub transaction_type: String,
     pub category: String,
     pub amount: f64,
@@ -49,8 +49,10 @@ pub struct Transaction {
 /*                               Public APIs                                 */
 /*****************************************************************************/
 
-pub async fn query_or_create_user(pool: &PgPool, username: &str)
-                                  -> Result<Vec<Account>, sqlx::Error> {
+pub async fn query_or_create_user(
+    pool: &PgPool,
+    username: &str,
+) -> Result<Vec<Account>, sqlx::Error> {
     if let Ok(user_id) = user_get_one(pool, username).await {
         account_get_all_for_user(pool, user_id).await
     } else {
@@ -59,58 +61,65 @@ pub async fn query_or_create_user(pool: &PgPool, username: &str)
     }
 }
 
-pub async fn create_or_update_account(pool: &PgPool,
-                                      account_id: Option<i64>,
-                                      username: &str,
-                                      account_name: &str,
-                                      account_type: &AccountType,
-                                      account_limit: f64)
-                                      -> Result<i64, sqlx::Error> {
+pub async fn create_or_update_account(
+    pool: &PgPool,
+    account_id: Option<i64>,
+    username: &str,
+    account_name: &str,
+    account_type: &AccountType,
+    account_limit: i32,
+) -> Result<i64, sqlx::Error> {
     if let Some(aid) = account_id {
         account_update(pool, aid, account_name, account_limit).await
     } else {
-        account_create(
-            pool, username, account_name, account_type, account_limit).await
+        account_create(pool, username, account_name, account_type, account_limit).await
     }
 }
 
-pub async fn create_or_update_transaction(pool: &PgPool,
-                                          transaction_id: Option<i64>,
-                                          transaction_date: &chrono::NaiveDate,
-                                          transaction_type: &TransactionType,
-                                          category: &str,
-                                          amount: f64,
-                                          transaction_memo: &str,
-                                          account_id: i64)
-                                          -> Result<i64, sqlx::Error> {
+pub async fn create_or_update_transaction(
+    pool: &PgPool,
+    transaction_id: Option<i64>,
+    transaction_date: &NaiveDate,
+    transaction_type: &TransactionType,
+    category: &str,
+    amount: f32,
+    transaction_memo: &str,
+    account_id: i64,
+) -> Result<i64, sqlx::Error> {
     if let Some(tid) = transaction_id {
-        transaction_update(pool,
-                           tid,
-                           transaction_date,
-                           transaction_type,
-                           category,
-                           amount,
-                           transaction_memo,
-                           account_id).await
+        transaction_update(
+            pool,
+            tid,
+            transaction_date,
+            transaction_type,
+            category,
+            amount,
+            transaction_memo,
+            account_id,
+        )
+        .await
     } else {
-        transaction_create(pool,
-                           transaction_date,
-                           transaction_type,
-                           category,
-                           amount,
-                           transaction_memo,
-                           account_id).await
+        transaction_create(
+            pool,
+            transaction_date,
+            transaction_type,
+            category,
+            amount,
+            transaction_memo,
+            account_id,
+        )
+        .await
     }
 }
 
-pub async fn query_account_transactions(pool: &PgPool,
-                                        account_id: i64)
-                                    -> Result<Vec<Transaction>, sqlx::Error> {
+pub async fn query_account_transactions(
+    pool: &PgPool,
+    account_id: i64,
+) -> Result<Vec<Transaction>, sqlx::Error> {
     transaction_get_all_for_account(pool, account_id).await
 }
 
-pub async fn delete_single_user(pool: &PgPool,
-                                username: &str) -> Result<(), sqlx::Error> {
+pub async fn delete_single_user(pool: &PgPool, username: &str) -> Result<(), sqlx::Error> {
     let num_deleted = user_delete(pool, username).await?;
     if num_deleted != 1 {
         panic!("More than one user deleted, username is not unique! database is in a bad state, please contact admin :(");
@@ -118,9 +127,7 @@ pub async fn delete_single_user(pool: &PgPool,
     Ok(())
 }
 
-pub async fn delete_single_account(pool: &PgPool,
-                                   account_id: i64)
-                                   -> Result<(), sqlx::Error> {
+pub async fn delete_single_account(pool: &PgPool, account_id: i64) -> Result<(), sqlx::Error> {
     let num_deleted = account_delete(pool, account_id).await?;
     if num_deleted != 1 {
         panic!("More than one account deleted, account_id is not unique! database is in a bad state, please contact admin :(");
@@ -128,9 +135,10 @@ pub async fn delete_single_account(pool: &PgPool,
     Ok(())
 }
 
-pub async fn delete_single_transaction(pool: &PgPool,
-                                       transaction_id: i64)
-                                       -> Result<(), sqlx::Error> {
+pub async fn delete_single_transaction(
+    pool: &PgPool,
+    transaction_id: i64,
+) -> Result<(), sqlx::Error> {
     let num_deleted = transaction_delete(pool, transaction_id).await?;
     if num_deleted != 1 {
         panic!("More than one transaction deleted, transaction_id is not unique! database is in a bad state, please contact admin :(");
@@ -143,12 +151,12 @@ pub async fn delete_single_transaction(pool: &PgPool,
 /*****************************************************************************/
 
 async fn user_create(pool: &PgPool, username: &str) -> Result<i64, sqlx::Error> {
-    let rec: (i64, ) = sqlx::query_as(
+    let rec: (i64,) = sqlx::query_as(
         r#"
 INSERT INTO users (username)
 VALUES ($1)
 RETURNING user_id
-        "#
+        "#,
     )
     .bind(username)
     .fetch_one(pool)
@@ -162,7 +170,7 @@ async fn user_delete(pool: &PgPool, username: &str) -> Result<u64, sqlx::Error> 
         r#"
 DELETE FROM users
 WHERE username=($1)
-        "#
+        "#,
     )
     .bind(username)
     .execute(pool)
@@ -172,7 +180,7 @@ WHERE username=($1)
     Ok(rows)
 }
 
-async fn user_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
+/* async fn user_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
     let users: Vec<User> = sqlx::query_as(
         r#"
 SELECT *
@@ -187,7 +195,7 @@ FROM users
     }
 
     Ok(())
-}
+} */
 
 async fn user_get_one(pool: &PgPool, username: &str) -> Result<i64, sqlx::Error> {
     let user: User = sqlx::query_as(
@@ -195,13 +203,16 @@ async fn user_get_one(pool: &PgPool, username: &str) -> Result<i64, sqlx::Error>
 SELECT *
 FROM users
 WHERE username=($1)
-        "#
+        "#,
     )
     .bind(username)
     .fetch_one(pool)
     .await?;
 
-    println!("::[DEBUG] Found user_id: {} from username: {}", user.user_id, user.username);
+    println!(
+        "::[DEBUG] Found user_id: {} from username: {}",
+        user.user_id, user.username
+    );
     Ok(user.user_id)
 }
 
@@ -209,18 +220,20 @@ WHERE username=($1)
 /*                               Account APIs                                */
 /*****************************************************************************/
 
-async fn account_create(pool: &PgPool,
-                        username: &str,
-                        account_name: &str,
-                        account_type: &AccountType,
-                        account_limit: f64) -> Result<i64, sqlx::Error> {
+async fn account_create(
+    pool: &PgPool,
+    username: &str,
+    account_name: &str,
+    account_type: &AccountType,
+    account_limit: i32,
+) -> Result<i64, sqlx::Error> {
     let user_id = user_get_one(pool, username).await?;
-    let rec: (i64, ) = sqlx::query_as(
+    let rec: (i64,) = sqlx::query_as(
         r#"
 INSERT INTO accounts (user_id, account_name, account_type, account_limit)
 VALUES ($1, $2, $3, $4)
 RETURNING account_id
-        "#
+        "#,
     )
     .bind(user_id)
     .bind(account_name)
@@ -237,7 +250,7 @@ async fn account_delete(pool: &PgPool, account_id: i64) -> Result<u64, sqlx::Err
         r#"
 DELETE FROM accounts
 WHERE account_id=($1)
-        "#
+        "#,
     )
     .bind(account_id)
     .execute(pool)
@@ -248,16 +261,18 @@ WHERE account_id=($1)
 }
 
 // We only update account_name and account_limit
-async fn account_update(pool: &PgPool,
-                        account_id: i64,
-                        account_name: &str,
-                        account_limit: f64) -> Result<i64, sqlx::Error> {
+async fn account_update(
+    pool: &PgPool,
+    account_id: i64,
+    account_name: &str,
+    account_limit: i32,
+) -> Result<i64, sqlx::Error> {
     sqlx::query(
         r#"
 UPDATE accounts
 SET account_name=($1), account_limit=($2)
 WHERE account_id=($3)
-        "#
+        "#,
     )
     .bind(account_name)
     .bind(account_limit)
@@ -268,7 +283,7 @@ WHERE account_id=($3)
     Ok(account_id)
 }
 
-async fn account_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
+/* async fn account_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
     let accounts: Vec<Account> = sqlx::query_as(
         r#"
 SELECT *
@@ -287,16 +302,18 @@ FROM accounts
     }
 
     Ok(())
-}
+} */
 
-async fn account_get_all_for_user(pool: &PgPool, user_id: i64)
-                                    -> Result<Vec<Account>, sqlx::Error> {
+async fn account_get_all_for_user(
+    pool: &PgPool,
+    user_id: i64,
+) -> Result<Vec<Account>, sqlx::Error> {
     let accounts: Vec<Account> = sqlx::query_as(
         r#"
 SELECT *
 FROM accounts
 WHERE user_id=($1)
-        "#
+        "#,
     )
     .bind(user_id)
     .fetch_all(pool)
@@ -305,7 +322,7 @@ WHERE user_id=($1)
     Ok(accounts)
 }
 
-async fn account_get_one(pool: &PgPool,
+/* async fn account_get_one(pool: &PgPool,
                          username: &str,
                          account_name: &str) -> Result<i64, sqlx::Error> {
     let user_id = user_get_one(pool, username).await?;
@@ -327,26 +344,28 @@ WHERE user_id=($1) AND account_name=($2)
     );
 
     Ok(account.account_id)
-}
+} */
 
 /*****************************************************************************/
 /*                             Transaction APIs                              */
 /*****************************************************************************/
 
-async fn transaction_create(pool: &PgPool,
-                            transaction_date: &chrono::NaiveDate,
-                            transaction_type: &TransactionType,
-                            category: &str,
-                            amount: f64,
-                            transaction_memo: &str,
-                            account_id: i64) -> Result<i64, sqlx::Error> {
-    let rec: (i64, ) = sqlx::query_as(
+async fn transaction_create(
+    pool: &PgPool,
+    transaction_date: &NaiveDate,
+    transaction_type: &TransactionType,
+    category: &str,
+    amount: f32,
+    transaction_memo: &str,
+    account_id: i64,
+) -> Result<i64, sqlx::Error> {
+    let rec: (i64,) = sqlx::query_as(
         r#"
 INSERT INTO transactions
 (transaction_date, transaction_type, category, amount, transaction_memo, account_id)
 VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING transaction_id
-        "#
+        "#,
     )
     .bind(transaction_date)
     .bind(transaction_type.to_string())
@@ -360,13 +379,12 @@ RETURNING transaction_id
     Ok(rec.0)
 }
 
-async fn transaction_delete(pool: &PgPool, transaction_id: i64)
-                                                -> Result<u64, sqlx::Error> {
+async fn transaction_delete(pool: &PgPool, transaction_id: i64) -> Result<u64, sqlx::Error> {
     let rows = sqlx::query(
         r#"
 DELETE FROM transactions
 WHERE transaction_id=($1)
-        "#
+        "#,
     )
     .bind(transaction_id)
     .execute(pool)
@@ -376,21 +394,23 @@ WHERE transaction_id=($1)
     Ok(rows)
 }
 
-async fn transaction_update(pool: &PgPool,
-                            transaction_id: i64,
-                            transaction_date: &chrono::NaiveDate,
-                            transaction_type: &TransactionType,
-                            category: &str,
-                            amount: f64,
-                            transaction_memo: &str,
-                            account_id: i64) -> Result<i64, sqlx::Error> {
+async fn transaction_update(
+    pool: &PgPool,
+    transaction_id: i64,
+    transaction_date: &NaiveDate,
+    transaction_type: &TransactionType,
+    category: &str,
+    amount: f32,
+    transaction_memo: &str,
+    account_id: i64,
+) -> Result<i64, sqlx::Error> {
     sqlx::query(
         r#"
 UPDATE transactions
 SET transaction_date=($1), transaction_type=($2), category=($3), amount=($4),
     transaction_memo=($5), account_id=($6)
 WHERE transaction_id=($7)
-        "#
+        "#,
     )
     .bind(transaction_date)
     .bind(transaction_type.to_string())
@@ -405,7 +425,7 @@ WHERE transaction_id=($7)
     Ok(transaction_id)
 }
 
-async fn transaction_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
+/* async fn transaction_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
     let transactions: Vec<Transaction> = sqlx::query_as(
         r#"
 SELECT *
@@ -424,16 +444,18 @@ FROM transactions
     }
 
     Ok(())
-}
+} */
 
-async fn transaction_get_all_for_account(pool: &PgPool, account_id: i64)
-                                    -> Result<Vec<Transaction>, sqlx::Error> {
+async fn transaction_get_all_for_account(
+    pool: &PgPool,
+    account_id: i64,
+) -> Result<Vec<Transaction>, sqlx::Error> {
     let transactions: Vec<Transaction> = sqlx::query_as(
         r#"
 SELECT *
 FROM transactions
 WHERE account_id=($1)
-        "#
+        "#,
     )
     .bind(account_id)
     .fetch_all(pool)
@@ -442,7 +464,7 @@ WHERE account_id=($1)
     Ok(transactions)
 }
 
-async fn transaction_get_one(pool: &PgPool,
+/* async fn transaction_get_one(pool: &PgPool,
                              transaction_id: i64,) -> Result<i64, sqlx::Error> {
     let transaction: Transaction = sqlx::query_as(
         r#"
@@ -461,4 +483,4 @@ WHERE transaction_id=($1)
     );
 
     Ok(transaction.transaction_id)
-}
+} */
