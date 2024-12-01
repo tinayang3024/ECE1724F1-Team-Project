@@ -6,12 +6,12 @@ use crate::input::{Account, TransRecord};
 const SERVER_BASE_URL: &str = "http://localhost:8080";
 
 #[derive(Serialize, Deserialize)]
-pub struct ServerAccount {
-    pub account_id: i64,
-    pub user_id: i64,
-    pub account_name: String,
-    pub account_type: String,
-    pub account_limit: f64,
+struct ServerAccount {
+    account_id: i64,
+    user_id: i64,
+    account_name: String,
+    account_type: String,
+    account_limit: f64,
 }
 
 impl ServerAccount {
@@ -19,21 +19,21 @@ impl ServerAccount {
         Account::new(
             &format!("{}", self.account_id),
             &self.account_name,
-            &self.account_type,
             &format!("{}", self.user_id),
+            &self.account_type,
             self.account_limit,
         )
     }
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct ServerTransaction {
-    pub transaction_id: i64,
-    pub transaction_date: String,
-    pub transaction_type: String,
-    pub category: String,
-    pub transaction_memo: String,
-    pub amount: f64,
+struct ServerTransaction {
+    transaction_id: i64,
+    transaction_date: String,
+    transaction_type: String,
+    category: String,
+    transaction_memo: String,
+    amount: f64,
 }
 
 impl ServerTransaction {
