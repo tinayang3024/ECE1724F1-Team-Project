@@ -47,13 +47,13 @@ pub async fn run_server(db_pool: PgPool) -> std::io::Result<()> {
                 "/create_or_update_transaction",
                 web::post().to(create_or_update_transaction),
             )
-            .route("/delete_user", web::delete().to(delete_user))
-            .route("/delete_account", web::delete().to(delete_account))
+            .route("/delete_user", web::post().to(delete_user))
+            .route("/delete_account/{account_id}", web::get().to(delete_account))
             .route(
-                "/delete_transaction",
-                web::delete().to(delete_transaction),
+                "/delete_transaction/{transaction_id}",
+                web::get().to(delete_transaction),
             )
-            .route("/query_account", web::get().to(query_account))
+            .route("/query_account/{account_id}", web::get().to(query_account))
     })
     .bind("localhost:8080")?
     .run()

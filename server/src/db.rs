@@ -180,23 +180,6 @@ WHERE username=($1)
     Ok(rows)
 }
 
-/* async fn user_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
-    let users: Vec<User> = sqlx::query_as(
-        r#"
-SELECT *
-FROM users
-        "#
-    )
-    .fetch_all(pool)
-    .await?;
-
-    for user in users {
-        println!("::[DEBUG] Got username: {} with id: {}", user.username, user.user_id);
-    }
-
-    Ok(())
-} */
-
 async fn user_get_one(pool: &PgPool, username: &str) -> Result<i64, sqlx::Error> {
     let user: User = sqlx::query_as(
         r#"
@@ -283,27 +266,6 @@ WHERE account_id=($3)
     Ok(account_id)
 }
 
-/* async fn account_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
-    let accounts: Vec<Account> = sqlx::query_as(
-        r#"
-SELECT *
-FROM accounts
-        "#
-    )
-    .fetch_all(pool)
-    .await?;
-
-    for account in accounts {
-        println!(
-            "::[DEBUG] Got account_id: {}, user_id: {}, account_name:{}, account_type: {}, account_limit: {}",
-            account.account_id, account.user_id, account.account_name,
-            account.account_type, account.account_limit
-        );
-    }
-
-    Ok(())
-} */
-
 async fn account_get_all_for_user(
     pool: &PgPool,
     user_id: i64,
@@ -321,30 +283,6 @@ WHERE user_id=($1)
 
     Ok(accounts)
 }
-
-/* async fn account_get_one(pool: &PgPool,
-                         username: &str,
-                         account_name: &str) -> Result<i64, sqlx::Error> {
-    let user_id = user_get_one(pool, username).await?;
-    let account: Account = sqlx::query_as(
-        r#"
-SELECT *
-FROM accounts
-WHERE user_id=($1) AND account_name=($2)
-        "#
-    )
-    .bind(user_id)
-    .bind(account_name)
-    .fetch_one(pool)
-    .await?;
-
-    println!(
-        "::[DEBUG] Found account_id: {} with user_id: {} and account_name: {}",
-        account.account_id, account.user_id, account.account_name
-    );
-
-    Ok(account.account_id)
-} */
 
 /*****************************************************************************/
 /*                             Transaction APIs                              */
@@ -425,27 +363,6 @@ WHERE transaction_id=($7)
     Ok(transaction_id)
 }
 
-/* async fn transaction_get_all(pool: &PgPool) -> Result<(), sqlx::Error> {
-    let transactions: Vec<Transaction> = sqlx::query_as(
-        r#"
-SELECT *
-FROM transactions
-        "#
-    )
-    .fetch_all(pool)
-    .await?;
-
-    for transaction in transactions {
-        println!(
-            "::[DEBUG] Got transaction_id: {}, transaction_date: {}, transaction_type:{}, category: {}, amount: {}, transaction_memo: {}, account_id: {}",
-            transaction.transaction_id, transaction.transaction_date, transaction.transaction_type,
-            transaction.category, transaction.amount, transaction.transaction_memo, transaction.account_id
-        );
-    }
-
-    Ok(())
-} */
-
 async fn transaction_get_all_for_account(
     pool: &PgPool,
     account_id: i64,
@@ -463,24 +380,3 @@ WHERE account_id=($1)
 
     Ok(transactions)
 }
-
-/* async fn transaction_get_one(pool: &PgPool,
-                             transaction_id: i64,) -> Result<i64, sqlx::Error> {
-    let transaction: Transaction = sqlx::query_as(
-        r#"
-SELECT *
-FROM transactions
-WHERE transaction_id=($1)
-        "#
-    )
-    .bind(transaction_id)
-    .fetch_one(pool)
-    .await?;
-
-    println!(
-        "::[DEBUG] Found transaction_id: {} with account_id: {}",
-        transaction.transaction_id, transaction.account_id
-    );
-
-    Ok(transaction.transaction_id)
-} */
