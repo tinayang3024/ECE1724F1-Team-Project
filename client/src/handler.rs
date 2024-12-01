@@ -17,7 +17,7 @@ use crate::input::{
     COMPLETED_TEXT_FG_COLOR,
  };
 
-pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
+pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
     // todo: this is here to ensure terminal cannot hang, 
     //       need to remove eventually to allow entering q in Entering mode***
     if key_event.code == KeyCode::Char('q') {
@@ -38,7 +38,7 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                     _ => {}
                 },
                 InputMode::Editing if key_event.kind == KeyEventKind::Press => match key_event.code {
-                    KeyCode::Enter => app.submit_message(),
+                    KeyCode::Enter => app.submit_message().await,
                     KeyCode::Char(to_insert) => app.enter_char(to_insert),
                     KeyCode::Backspace => app.delete_char(),
                     KeyCode::Left => app.move_cursor_left(),
@@ -93,10 +93,13 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                             app.select_first();
                         }
                     },
+                    KeyCode::Enter => {
+                        app.update_account().await;
+                    }
                     _ => {}
                 },
                 InputMode::Editing if key_event.kind == KeyEventKind::Press => match key_event.code {
-                    KeyCode::Enter => app.submit_message(),
+                    KeyCode::Enter => app.submit_message().await,
                     KeyCode::Char(to_insert) => app.enter_char(to_insert),
                     KeyCode::Backspace => app.delete_char(),
                     KeyCode::Left => app.move_cursor_left(),
@@ -109,7 +112,13 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                     KeyCode::Up => app.select_prev(),
                     KeyCode::Down => app.select_next(),
                     KeyCode::Esc => app.stop_select(),
-                    KeyCode::Enter => app.confirm_selection(),
+                    KeyCode::Enter => {
+                        app.confirm_selection();
+                        // not working right now, uncomment once fixed
+                        // if app.list_content == ListType::Acct {
+                        //     app.load_account_details().await;
+                        // }
+                    },
                     _ => {}
                 },
                 InputMode::ViewAccountList => {}
@@ -129,10 +138,13 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                     KeyCode::Char('e') => {
                         app.input_mode = InputMode::Editing;
                     },
+                    KeyCode::Enter => {
+                        app.create_new_account().await;
+                    }
                     _ => {}
                 },
                 InputMode::Editing if key_event.kind == KeyEventKind::Press => match key_event.code {
-                    KeyCode::Enter => app.submit_message(),
+                    KeyCode::Enter => app.submit_message().await,
                     KeyCode::Char(to_insert) => app.enter_char(to_insert),
                     KeyCode::Backspace => app.delete_char(),
                     KeyCode::Left => app.move_cursor_left(),
@@ -161,7 +173,7 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                     _ => {}
                 },
                 InputMode::Editing if key_event.kind == KeyEventKind::Press => match key_event.code {
-                    KeyCode::Enter => app.submit_message(),
+                    KeyCode::Enter => app.submit_message().await,
                     KeyCode::Char(to_insert) => app.enter_char(to_insert),
                     KeyCode::Backspace => app.delete_char(),
                     KeyCode::Left => app.move_cursor_left(),

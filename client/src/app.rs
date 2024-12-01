@@ -15,6 +15,11 @@ use crate::input::{
     TEXT_FG_COLOR,
     COMPLETED_TEXT_FG_COLOR,
  };
+use crate::client::{
+    query_or_create_user,
+    create_or_update_account,
+    get_all_transactions,
+};
 
 use ratatui::{
     buffer::Buffer,
@@ -68,6 +73,7 @@ pub struct App {
 
     pub new_trans_question_list: Vec<InputContent>,
     pub new_acct_question_list: Vec<InputContent>,
+    pub debug_msg: String,
 }
 
 impl Default for App {
@@ -144,6 +150,7 @@ impl Default for App {
                 InputContent::AccountType,
                 InputContent::AccountLimit,
             ],
+            debug_msg: String::new(),
         }
     }
 }
@@ -208,10 +215,27 @@ impl App {
         }
     }
 
-    pub fn submit_message(&mut self) {
+    pub async fn submit_message(&mut self) {
         match self.input_content {
             InputContent::Username => {
                 self.username = self.input.clone();
+
+                // query to create to load user data
+                let accounts = query_or_create_user(&self.username).await;
+                
+                self.debug_msg = format!("{:?}", accounts.iter().count());
+
+                for account in accounts.iter() {
+                    self.accounts.items.push(Account::new(
+                        &account.acct_id,
+                        &account.acct_name,
+                        &account.user_id,
+                        &account.acct_type,
+                        account.card_limit,
+                    ));
+                }
+
+                // rerouting
                 self.input_content = InputContent::AccountName;
                 self.input_mode = InputMode::Normal;
                 self.page = Page::AccountDetails;
@@ -229,6 +253,44 @@ impl App {
         self.input_mode = InputMode::Normal;
     }
 
+    pub async fn create_new_account(&mut self) {
+        let acct_id_str = create_or_update_account(
+            None,
+            self.username.as_str(),
+            self.new_account.acct_name.as_str(),
+            self.new_account.acct_type.as_str(),
+            self.new_account.card_limit
+        ).await;
+        self.debug_msg = acct_id_str;
+    }
+
+    pub async fn update_account(&mut self) {
+        let acct_id_str = create_or_update_account(
+            Some(self.new_account.acct_id.clone()),
+            self.username.as_str(),
+            self.new_account.acct_name.as_str(),
+            self.new_account.acct_type.as_str(),
+            self.new_account.card_limit
+        ).await;
+        self.debug_msg = acct_id_str;
+    }
+
+    pub async fn load_account_details(&mut self) {
+        let transactions = get_all_transactions(
+            self.new_account.acct_id.as_str()
+        ).await;
+        // for trans in transactions.iter() {
+        //     self.trans_history.items.push(TransRecord::new(
+        //         &account.acct_id,
+        //         &account.acct_name,
+        //         &account.user_id,
+        //         &account.acct_type,
+        //         account.card_limit,
+        //     ));
+        // }
+        self.debug_msg = "?".to_string();
+        self.trans_history.items = transactions;
+    }
 
     // LIST RELATED FUNCTIONS
     pub fn select_first(&mut self) {
@@ -309,7 +371,8 @@ impl App {
         let index = App::find_index(vec, target);
         if index == -1 {
             -1
-        } else if index ==  (vec.len()-1).try_into().unwrap() {
+        // } else if index == (vec.len()-1).try_into::<i32>().unwrap() {
+        } else if index == <usize as TryInto<i32>>::try_into(vec.len() - 1).unwrap() {
             index
         } else {
             index + 1

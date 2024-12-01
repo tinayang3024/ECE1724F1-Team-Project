@@ -130,20 +130,21 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         }
     }     
 
-    frame.render_widget(
-        Paragraph::new(key_instructions.join("\n")).block(Block::bordered()),
-        subtitle,
-    );
-
-    //debug messages
     // frame.render_widget(
-    //     Paragraph::new(format!("input_content {:?}; page {:?}, t_q_list: {:?}", 
-    //         app.input_content, 
-    //         app.page,
-    //         app.new_trans_question_list
-    //     )).block(Block::bordered()),
+    //     Paragraph::new(key_instructions.join("\n")).block(Block::bordered()),
     //     subtitle,
     // );
+
+    // debug messages
+    frame.render_widget(
+        Paragraph::new(format!("input_content {:?}; page {:?}, t_q_list: {:?}, debug_msg: {:?}", 
+            app.input_content, 
+            app.page,
+            app.new_trans_question_list,
+            app.debug_msg
+        )).block(Block::bordered()),
+        subtitle,
+    );
 
 
     let left_content_inner_layout = Layout::default()

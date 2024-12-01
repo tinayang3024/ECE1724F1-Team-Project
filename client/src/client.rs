@@ -26,12 +26,47 @@ impl ServerAccount {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ServerTransaction {
+    pub transaction_id: i64,
+    pub transaction_date: String,
+    pub transaction_type: String,
+    pub category: String,
+    pub transaction_memo: String,
+    pub amount: f64,
+}
+
+impl ServerTransaction {
+    fn to_transaction(&self) -> TransRecord {
+        TransRecord::new(
+            // &format!("{}", self.account_id),
+            // &self.account_name,
+            // &self.account_type,
+            // &format!("{}", self.user_id),
+            // self.account_limit,
+            &format!("{}", self.transaction_id),
+            // &self.transaction_id,
+            &self.transaction_date,
+            &self.transaction_type,
+            &self.category,
+            &self.transaction_memo,
+            self.amount,
+            // pub timestamp: String,
+            // pub trans_type: String, // expense or income
+            // pub category: String,
+            // pub description: String,
+            // pub amount: f64,
+        )
+    }
+}
+
 // Example usage:
 // let accounts = crate::client::query_or_create_user("sophie").await;
 // for account in accounts.iter() {
 //     println!("Got account_id {} account_name {} user_id {}", account.acct_id, account.acct_name, account.user_id);
 // }
 pub async fn query_or_create_user(username: &str) -> Vec<Account> {
+    // TODO: need to convert card type number into text
     let url = format!("{SERVER_BASE_URL}/query_or_create_user");
     let client = reqwest::Client::new();
     let resp = client
@@ -126,4 +161,32 @@ pub async fn create_or_update_transaction(trans_id: Option<String>,
     }
 
     resp.text().await.unwrap()
+}
+
+
+// this function somehow doesn't work right now??? 
+pub async fn get_all_transactions(acct_id: &str) -> Vec<TransRecord> {
+    // TODO: need to convert card type number into text
+    let url = format!("{SERVER_BASE_URL}/query_account");
+    let client = reqwest::Client::new();
+    let resp = client
+        .get(&url)
+        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(format!("account_id={}", acct_id))
+        .send()
+        .await
+        .unwrap();
+    if !resp.status().is_success() {
+        // Just panic for now
+        panic!("Error: Reqwest failed {:?}", format!("account_id={}", acct_id));
+    }
+
+    let body = resp.text().await.unwrap();
+    let transactions: Vec<ServerTransaction> = serde_json::from_str(&body).unwrap();
+    let transactions = transactions
+        .iter()
+        .map(|a| a.to_transaction())
+        .collect::<Vec<TransRecord>>();
+
+    transactions
 }
