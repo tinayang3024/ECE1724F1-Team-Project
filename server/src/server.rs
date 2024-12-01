@@ -33,6 +33,7 @@ pub async fn run_server(db_pool: PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
+            .route("/", web::get().to(greet))
             // API endpoints
             .route(
                 "/query_or_create_user",
@@ -49,7 +50,7 @@ pub async fn run_server(db_pool: PgPool) -> std::io::Result<()> {
             .route("/delete_user", web::delete().to(delete_user))
             .route("/delete_account", web::delete().to(delete_account))
             .route(
-                "/delete_transaction/{id}",
+                "/delete_transaction",
                 web::delete().to(delete_transaction),
             )
             .route("/query_account", web::get().to(query_account))
@@ -62,6 +63,13 @@ pub async fn run_server(db_pool: PgPool) -> std::io::Result<()> {
 /*****************************************************************************/
 /* API handlers */
 
+// check whether server is up
+async fn greet() -> impl Responder {
+    HttpResponse::Ok().body("Server is up!")
+}
+
+////////////////////////// tbd: change all input type to json
+/// db api not returning any result.
 async fn query_or_create_user(
     pool: web::Data<PgPool>,
     user_data: web::Form<UserData>,
@@ -151,8 +159,14 @@ async fn delete_transaction(
 
 async fn query_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> impl Responder {
     match db::query_account_transactions(&pool, account_id.into_inner()).await {
-        Ok(result) => HttpResponse::Ok().json(result),
-        Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
+        Ok(result) => {
+            println!("query account got: {:?}", result);
+            HttpResponse::Ok().json(result)
+        }
+        Err(e) => {
+            println!("ERROR query account: {}", e);
+            HttpResponse::InternalServerError().json(format!("Error: {}", e))
+        }
     }
 }
 
