@@ -91,7 +91,7 @@ async fn delete_user(pool: web::Data<PgPool>, user_data: web::Form<UserData>) ->
 
 async fn create_or_update_account(
     pool: web::Data<PgPool>,
-    info: web::Json<AccountInfo>,
+    info: web::Form<AccountInfo>,
 ) -> impl Responder {
     // tbd: pass username instead of user_id
     let username = &info.username;
@@ -122,7 +122,7 @@ async fn delete_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> 
 
 async fn create_or_update_transaction(
     pool: web::Data<PgPool>,
-    info: web::Json<TransactionInfo>,
+    info: web::Form<TransactionInfo>,
 ) -> impl Responder {
     let transaction_date = &info.transaction_date;
     let transaction_type = &info.transaction_type;
