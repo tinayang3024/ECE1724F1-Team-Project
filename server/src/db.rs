@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
-use sqlx::postgres::PgPool;
+use sqlx::{postgres::PgPool, QueryBuilder};
 use strum_macros::{Display, EnumString};
 
 pub const PG_CONNECTION_STR: &str =
@@ -13,7 +13,7 @@ pub enum AccountType {
     // Savings,
 }
 
-#[derive(Display, EnumString, Deserialize)]
+#[derive(Display, PartialEq, EnumString, Deserialize)]
 pub enum TransactionType {
     Expenses,
     Income,
@@ -82,7 +82,7 @@ pub async fn create_or_update_transaction(
     transaction_date: &NaiveDate,
     transaction_type: &TransactionType,
     category: &str,
-    amount: f32,
+    amount: f64,
     transaction_memo: &str,
     account_id: i64,
 ) -> Result<i64, sqlx::Error> {
@@ -115,8 +115,17 @@ pub async fn create_or_update_transaction(
 pub async fn query_account_transactions(
     pool: &PgPool,
     account_id: i64,
-) -> Result<Vec<Transaction>, sqlx::Error> {
-    transaction_get_all_for_account(pool, account_id).await
+    transaction_type: &Option<TransactionType>,
+    category: &Option<String>,
+) -> Result<(Vec<Transaction>, f64), sqlx::Error> {
+    println!("1");
+    let transactions =
+        transaction_get_all_for_account(pool, account_id, transaction_type, category).await?;
+    println!("2");
+    let transaction_sum = 
+        transaction_get_sum_for_account(pool, account_id, transaction_type, category).await?;
+    println!("3");
+    Ok((transactions, transaction_sum))
 }
 
 pub async fn delete_single_user(pool: &PgPool, username: &str) -> Result<(), sqlx::Error> {
@@ -293,10 +302,15 @@ async fn transaction_create(
     transaction_date: &NaiveDate,
     transaction_type: &TransactionType,
     category: &str,
-    amount: f32,
+    amount: f64,
     transaction_memo: &str,
     account_id: i64,
 ) -> Result<i64, sqlx::Error> {
+    let mut adjusted_amount = amount;
+    if transaction_type == &TransactionType::Expenses && amount > 0.0 {
+        // Assume user means negative
+        adjusted_amount = 0.0 - amount;
+    }
     let rec: (i64,) = sqlx::query_as(
         r#"
 INSERT INTO transactions
@@ -308,7 +322,7 @@ RETURNING transaction_id
     .bind(transaction_date)
     .bind(transaction_type.to_string())
     .bind(category)
-    .bind(amount)
+    .bind(adjusted_amount)
     .bind(transaction_memo)
     .bind(account_id)
     .fetch_one(pool)
@@ -338,10 +352,15 @@ async fn transaction_update(
     transaction_date: &NaiveDate,
     transaction_type: &TransactionType,
     category: &str,
-    amount: f32,
+    amount: f64,
     transaction_memo: &str,
     account_id: i64,
 ) -> Result<i64, sqlx::Error> {
+    let mut adjusted_amount = amount;
+    if transaction_type == &TransactionType::Expenses && amount > 0.0 {
+        // Assume user means negative
+        adjusted_amount = 0.0 - amount;
+    }
     sqlx::query(
         r#"
 UPDATE transactions
@@ -353,7 +372,7 @@ WHERE transaction_id=($7)
     .bind(transaction_date)
     .bind(transaction_type.to_string())
     .bind(category)
-    .bind(amount)
+    .bind(adjusted_amount)
     .bind(transaction_memo)
     .bind(account_id)
     .bind(transaction_id)
@@ -366,17 +385,59 @@ WHERE transaction_id=($7)
 async fn transaction_get_all_for_account(
     pool: &PgPool,
     account_id: i64,
+    transaction_type: &Option<TransactionType>,
+    category: &Option<String>,
 ) -> Result<Vec<Transaction>, sqlx::Error> {
-    let transactions: Vec<Transaction> = sqlx::query_as(
-        r#"
-SELECT *
-FROM transactions
-WHERE account_id=($1)
-        "#,
-    )
-    .bind(account_id)
-    .fetch_all(pool)
-    .await?;
+    let mut query: QueryBuilder<'_, sqlx::Postgres> =
+        QueryBuilder::new("SELECT * FROM transactions WHERE account_id=");
+    query.push_bind(account_id);
+
+    if let Some(trans_type) = transaction_type {
+        query.push(" AND transaction_type=");
+        query.push_bind(trans_type.to_string());
+    }
+
+    if let Some(trans_category) = category {
+        query.push(" AND category=");
+        query.push_bind(trans_category);
+    }
+
+    let transactions: Vec<Transaction> = query.build_query_as()
+        .fetch_all(pool)
+        .await?;
 
     Ok(transactions)
+}
+
+async fn transaction_get_sum_for_account(
+    pool: &PgPool,
+    account_id: i64,
+    transaction_type: &Option<TransactionType>,
+    category: &Option<String>,
+) -> Result<f64, sqlx::Error> {
+    let mut query: QueryBuilder<'_, sqlx::Postgres> =
+        QueryBuilder::new(
+            "SELECT SUM(amount) FROM transactions WHERE account_id="
+        );
+    query.push_bind(account_id);
+
+    if let Some(trans_type) = transaction_type {
+        query.push(" AND transaction_type=");
+        query.push_bind(trans_type.to_string());
+    }
+
+    if let Some(trans_category) = category {
+        query.push(" AND category=");
+        query.push_bind(trans_category);
+    }
+
+    let sum: (Option<f64>,) = query.build_query_as()
+        .fetch_one(pool)
+        .await?;
+    
+    if let Some(s) = sum.0 {
+        Ok(s)
+    } else {
+        Ok(0.0)
+    }
 }

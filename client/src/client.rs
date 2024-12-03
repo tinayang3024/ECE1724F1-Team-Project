@@ -205,27 +205,42 @@ pub async fn delete_transaction(transaction_id: i64) -> bool {
     }
 }
 
-// not working
-pub async fn query_account(account_id: i64) -> Vec<TransRecord> {
-    let url = format!("{SERVER_BASE_URL}/query_account/{}", account_id);
-    let resp = reqwest::get(&url).await;
-    let resp = match resp {
-        Ok(response) => response,
-        Err(e) => {
-            eprintln!("Error in query_account: {}", e);
-            panic!("Failed to query account for account_id={}", account_id);
-        }
-    };
+// Example usage:
+// let (t, s) = client::query_account(1, None, Some("Meal".to_string())).await;
+pub async fn query_account(
+    account_id: i64,
+    trans_type: Option<String>,
+    category: Option<String>,
+) -> (Vec<TransRecord>, f64) {
+    let url = format!("{SERVER_BASE_URL}/query_account");
 
+
+    let mut post_body = format!("account_id={account_id}");
+    if let Some(ttype) = trans_type {
+        post_body.push_str(&format!("&transaction_type={ttype}"));
+    }
+    if let Some(tcate) = category {
+        post_body.push_str(&format!("&category={tcate}"));
+    }
+
+    let client = reqwest::Client::new();
+    let resp = client
+        .post(&url)
+        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(post_body)
+        .send()
+        .await
+        .unwrap();
     if !resp.status().is_success() {
-        eprintln!("Error: Server responded with status {} for account_id={}", resp.status(), account_id);
-        panic!("Reqwest failed for account_id={} resp={}", account_id, resp.status());
+        // Just panic for now
+        panic!("Error: Reqwest failed");
     }
 
     let body = resp.text().await.unwrap();
-    let transactions: Vec<ServerTransaction> = serde_json::from_str(&body).unwrap();
-    transactions
+    let transactions: (Vec<ServerTransaction>, f64) = serde_json::from_str(&body).unwrap();
+    (transactions.0
         .iter()
         .map(|t| t.to_transaction())
-        .collect::<Vec<TransRecord>>()
+        .collect::<Vec<TransRecord>>(),
+     transactions.1)
 }

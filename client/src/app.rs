@@ -277,20 +277,15 @@ impl App {
 
     // not working
     pub async fn load_account_details(&mut self) {
+        // Tina TODO: Change None to something that user enters?
+        // Or add a new function for transaction filtering?
         let transactions = query_account(
-            self.new_account.acct_id.parse().unwrap()
+            self.new_account.acct_id.parse().unwrap(),
+            None,
+            None,
         ).await;
-        // for trans in transactions.iter() {
-        //     self.trans_history.items.push(TransRecord::new(
-        //         &account.acct_id,
-        //         &account.acct_name,
-        //         &account.user_id,
-        //         &account.acct_type,
-        //         account.card_limit,
-        //     ));
-        // }
         self.debug_msg = "?".to_string();
-        self.trans_history.items = transactions;
+        self.trans_history.items = transactions.0;
     }
 
     // LIST RELATED FUNCTIONS

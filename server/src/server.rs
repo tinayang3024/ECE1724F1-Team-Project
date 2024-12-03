@@ -21,11 +21,11 @@ pub struct AccountInfo {
 #[derive(sqlx::FromRow, Deserialize)]
 pub struct TransactionInfo {
     pub transaction_id: Option<i64>,
-    pub transaction_date: NaiveDate,
-    pub transaction_type: db::TransactionType,
-    pub category: String,
-    pub amount: f32,
-    pub transaction_memo: String,
+    pub transaction_date: Option<NaiveDate>,
+    pub transaction_type: Option<db::TransactionType>,
+    pub category: Option<String>,
+    pub amount: Option<f64>,
+    pub transaction_memo: Option<String>,
     pub account_id: i64,
 }
 
@@ -53,7 +53,7 @@ pub async fn run_server(db_pool: PgPool) -> std::io::Result<()> {
                 "/delete_transaction/{transaction_id}",
                 web::get().to(delete_transaction),
             )
-            .route("/query_account/{account_id}", web::get().to(query_account))
+            .route("/query_account", web::post().to(query_account))
     })
     .bind("localhost:8080")?
     .run()
@@ -124,11 +124,11 @@ async fn create_or_update_transaction(
     pool: web::Data<PgPool>,
     info: web::Form<TransactionInfo>,
 ) -> impl Responder {
-    let transaction_date = &info.transaction_date;
-    let transaction_type = &info.transaction_type;
-    let category = &info.category;
-    let amount = info.amount;
-    let transaction_memo = &info.transaction_memo;
+    let transaction_date = &info.transaction_date.unwrap();
+    let transaction_type = &info.transaction_type.as_ref().unwrap();
+    let category = &info.category.as_ref().unwrap();
+    let amount = info.amount.unwrap();
+    let transaction_memo = &info.transaction_memo.as_ref().unwrap();
     let account_id = info.account_id;
     match db::create_or_update_transaction(
         &pool,
@@ -157,8 +157,17 @@ async fn delete_transaction(
     }
 }
 
-async fn query_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> impl Responder {
-    match db::query_account_transactions(&pool, account_id.into_inner()).await {
+async fn query_account(
+    pool: web::Data<PgPool>,
+    info: web::Form<TransactionInfo>,
+) -> impl Responder {
+    let account_id = info.account_id;
+    match db::query_account_transactions(
+        &pool,
+        account_id,
+        &info.transaction_type,
+        &info.category,
+    ).await {
         Ok(result) => {
             println!("query account got: {:?}", result);
             HttpResponse::Ok().json(result)
