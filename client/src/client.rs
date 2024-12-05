@@ -134,6 +134,7 @@ pub async fn create_or_update_transaction(trans_id: Option<String>,
                                           amt: f64,
                                           descrip: &str,
                                           acct_id: &str) -> String {
+
     let url = format!("{SERVER_BASE_URL}/create_or_update_transaction");
     let mut post_body = if let Some(tid) = trans_id {
         format!("transaction_id={}&", tid)
@@ -151,13 +152,13 @@ pub async fn create_or_update_transaction(trans_id: Option<String>,
     let resp = client
         .post(&url)
         .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(post_body)
+        .body(post_body.clone())
         .send()
         .await
         .unwrap();
     if !resp.status().is_success() {
         // Just panic for now
-        panic!("Error: Reqwest failed");
+        panic!("Error: Reqwest failed - {:?}", post_body);
     }
 
     resp.text().await.unwrap()

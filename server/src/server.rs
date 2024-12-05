@@ -82,6 +82,7 @@ async fn query_or_create_user(
 }
 
 async fn delete_user(pool: web::Data<PgPool>, user_data: web::Form<UserData>) -> impl Responder {
+    println!("deleting user {:?}", username.clone());
     let username = &user_data.username;
     match db::delete_single_user(&pool, username).await {
         Ok(_) => HttpResponse::Ok().finish(),
@@ -93,6 +94,8 @@ async fn create_or_update_account(
     pool: web::Data<PgPool>,
     info: web::Form<AccountInfo>,
 ) -> impl Responder {
+    println!("create_or_update_account triggered");
+
     // tbd: pass username instead of user_id
     let username = &info.username;
     let account_name = &info.account_name;
@@ -114,6 +117,7 @@ async fn create_or_update_account(
 }
 
 async fn delete_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> impl Responder {
+    println!("delete_account triggered");
     match db::delete_single_account(&pool, account_id.into_inner()).await {
         Ok(_) => HttpResponse::Ok().finish(), // return status code: 200 OK
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
@@ -124,12 +128,18 @@ async fn create_or_update_transaction(
     pool: web::Data<PgPool>,
     info: web::Form<TransactionInfo>,
 ) -> impl Responder {
+    println!("create_or_update_transaction triggered");
+
     let transaction_date = &info.transaction_date.unwrap();
     let transaction_type = &info.transaction_type.as_ref().unwrap();
     let category = &info.category.as_ref().unwrap();
     let amount = info.amount.unwrap();
     let transaction_memo = &info.transaction_memo.as_ref().unwrap();
     let account_id = info.account_id;
+
+    println!("create/update transaction triggered: transaction_date {:?} category {:?} transaction_memo {:?}", 
+        transaction_date, category, transaction_memo);
+
     match db::create_or_update_transaction(
         &pool,
         info.transaction_id,
@@ -142,7 +152,10 @@ async fn create_or_update_transaction(
     )
     .await
     {
-        Ok(result) => HttpResponse::Ok().json(result),
+        Ok(result) => {
+            println!("create/update transaction got: {:?}", result);
+            HttpResponse::Ok().json(result)
+        },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }
@@ -161,6 +174,8 @@ async fn query_account(
     pool: web::Data<PgPool>,
     info: web::Form<TransactionInfo>,
 ) -> impl Responder {
+    println!("query_account triggered");
+
     let account_id = info.account_id;
     match db::query_account_transactions(
         &pool,

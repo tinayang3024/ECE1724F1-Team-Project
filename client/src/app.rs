@@ -19,8 +19,12 @@ use crate::client::{
     query_or_create_user,
     create_or_update_account,
     query_account,
+    create_or_update_transaction,
+    delete_account,
+    delete_transaction,
+    delete_user
 };
-
+use chrono::Local;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
@@ -56,9 +60,13 @@ pub struct App {
     // pub account_selected_idx: usize,
     /// List of transaction history
     pub trans_history: TransList,
-    /// new accounts
+
+
+    /// new or selected account/transaction
     pub new_account: Account,
     pub new_trans: TransRecord,
+
+
     /// Current input mode
     pub input_mode: InputMode,
     /// Current input
@@ -215,25 +223,48 @@ impl App {
         }
     }
 
+    pub async fn refresh_user_data(&mut self) {
+        let accounts = query_or_create_user(&self.username).await;
+                
+        // self.debug_msg = format!("{:?}", accounts.iter().count());
+
+        // clear the current account list
+        self.accounts.items.clear();
+
+        // populate loaded accounts
+        for account in accounts.iter() {
+            self.accounts.items.push(Account::new(
+                &account.acct_id,
+                &account.acct_name,
+                &account.user_id,
+                &account.acct_type,
+                account.card_limit,
+            ));
+        }
+    }
+
+    pub async fn delete_user(&mut self) {
+        self.debug_msg = format!("{:?} deleting", self.username);
+
+        
+        if self.username != "" {
+            let deletion_status = delete_user(
+                &self.username
+            ).await;
+            self.debug_msg = format!("{:?} deleted", deletion_status);
+            self.username = "".to_string();        
+        } else {
+            self.debug_msg = format!("deletion not triggered");
+        }
+    }
+
     pub async fn submit_message(&mut self) {
         match self.input_content {
             InputContent::Username => {
                 self.username = self.input.clone();
 
                 // query to create to load user data
-                let accounts = query_or_create_user(&self.username).await;
-                
-                self.debug_msg = format!("{:?}", accounts.iter().count());
-
-                for account in accounts.iter() {
-                    self.accounts.items.push(Account::new(
-                        &account.acct_id,
-                        &account.acct_name,
-                        &account.user_id,
-                        &account.acct_type,
-                        account.card_limit,
-                    ));
-                }
+                self.refresh_user_data().await;
 
                 // rerouting
                 self.input_content = InputContent::AccountName;
@@ -261,7 +292,10 @@ impl App {
             self.new_account.acct_type.as_str(),
             self.new_account.card_limit
         ).await;
-        self.debug_msg = acct_id_str;
+        // self.debug_msg = acct_id_str;
+        
+        // reload profile data after creating new account
+        self.refresh_user_data().await;
     }
 
     pub async fn update_account(&mut self) {
@@ -272,11 +306,25 @@ impl App {
             self.new_account.acct_type.as_str(),
             self.new_account.card_limit
         ).await;
-        self.debug_msg = acct_id_str;
+        // self.debug_msg = acct_id_str;
+
+        // reload profile data after creating new account
+        self.refresh_user_data().await;
     }
 
-    // not working
-    pub async fn load_account_details(&mut self) {
+    pub async fn delete_account(&mut self) {
+        if self.new_account.acct_id != "" {
+            let deletion_status = delete_account(
+                self.new_account.acct_id.parse().unwrap(),
+            ).await;
+            // self.debug_msg = format!("{:?}", deletion_status);
+            self.new_account.acct_id = "".to_string();
+        }
+        // reload profile data after creating new account
+        self.refresh_user_data().await;
+    }
+
+    pub async fn refresh_transactions(&mut self) {
         // Tina TODO: Change None to something that user enters?
         // Or add a new function for transaction filtering?
         let transactions = query_account(
@@ -284,9 +332,51 @@ impl App {
             None,
             None,
         ).await;
-        self.debug_msg = "?".to_string();
+        // self.debug_msg = transactions.0.len().to_string();
+        // self.trans_history.items = transactions.0;
+
+        // populate loaded transactions
+        self.trans_history.items.clear();
         self.trans_history.items = transactions.0;
     }
+
+    pub async fn create_or_update_transaction(&mut self, create: bool) {
+        let timestamp = if create {
+            Local::now().date_naive().to_string()
+        } else {
+            self.new_trans.timestamp.clone()
+        };
+    
+        let trans_id = 
+            create_or_update_transaction(
+                if create { None } else { Some(self.new_trans.transaction_id.clone()) },
+                &timestamp,
+                &self.new_trans.trans_type,
+                &self.new_trans.category,
+                self.new_trans.amount,
+                &self.new_trans.description,
+                &self.new_account.acct_id,
+            ).await;
+    
+        // self.debug_msg = trans_id.clone();
+        self.new_trans.transaction_id = trans_id;
+    
+        self.refresh_transactions().await;
+        self.page = Page::AccountDetails;
+    }
+
+    pub async fn delete_transaction(&mut self) {
+        if self.new_trans.transaction_id != "" {
+            let deletion_status = delete_transaction(
+                self.new_trans.transaction_id.parse().unwrap(),
+            ).await;
+            // self.debug_msg = format!("{:?}", deletion_status);
+            self.new_trans.transaction_id = "".to_string();
+        }
+        // reload profile data after creating new account
+        self.refresh_transactions().await;
+    }
+
 
     // LIST RELATED FUNCTIONS
     pub fn select_first(&mut self) {

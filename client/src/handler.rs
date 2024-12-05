@@ -66,6 +66,11 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                             app.next_input()
                         }
                     },
+                    // not working somehow currently
+                    KeyCode::Char('b') => {
+                        app.delete_user();
+                        app.page = Page::Login;
+                    },
                     KeyCode::Char('e') => {
                         if app.new_account.acct_id != "" {
                             app.input_mode = InputMode::Editing;
@@ -93,6 +98,9 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                             app.select_first();
                         }
                     },
+                    KeyCode::Char('d') => {
+                        app.delete_account().await;
+                    }
                     KeyCode::Enter => {
                         app.update_account().await;
                     }
@@ -114,9 +122,8 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     KeyCode::Esc => app.stop_select(),
                     KeyCode::Enter => {
                         app.confirm_selection();
-                        // not working right now, uncomment once fixed
                         if app.list_content == ListType::Acct {
-                            app.load_account_details().await;
+                            app.refresh_transactions().await;
                         }
                     },
                     _ => {}
@@ -140,6 +147,7 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     },
                     KeyCode::Enter => {
                         app.create_new_account().await;
+                        app.page = Page::AccountDetails;
                     }
                     _ => {}
                 },
@@ -170,6 +178,19 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     KeyCode::Char('e') => {
                         app.input_mode = InputMode::Editing;
                     },
+                    KeyCode::Char('d') => {
+                        if app.page == Page::EditTransaction {
+                            app.delete_transaction().await;
+                            app.page = Page::AccountDetails;
+                        }
+                    }
+                    KeyCode::Enter => {
+                        if app.page == Page::NewTransaction{
+                            app.create_or_update_transaction(true).await;
+                        } else {
+                            app.create_or_update_transaction(false).await;
+                        }
+                    }
                     _ => {}
                 },
                 InputMode::Editing if key_event.kind == KeyEventKind::Press => match key_event.code {
