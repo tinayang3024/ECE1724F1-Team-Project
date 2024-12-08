@@ -237,6 +237,11 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                 render_input_field(app, frame, right_row_2_position, "Account Type".to_string(), app.new_account.acct_type.to_string(), InputContent::AccountType);
                 render_input_field(app, frame, right_row_3_position, "Card Limit".to_string(), app.new_account.card_limit.to_string(), InputContent::AccountLimit);
 
+                frame.render_widget(
+                    Paragraph::new(format!("Balance: {}", app.acct_balance)),
+                    right_row_4_position,
+                );
+
                 app.render_trans_list(trans_his_position, frame.buffer_mut());
 
                 frame.render_widget(

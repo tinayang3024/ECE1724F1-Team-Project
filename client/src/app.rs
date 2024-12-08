@@ -82,6 +82,8 @@ pub struct App {
     pub new_trans_question_list: Vec<InputContent>,
     pub new_acct_question_list: Vec<InputContent>,
     pub debug_msg: String,
+
+    pub acct_balance: String,
 }
 
 impl Default for App {
@@ -159,6 +161,7 @@ impl Default for App {
                 InputContent::AccountLimit,
             ],
             debug_msg: String::new(),
+            acct_balance: String::new(),
         }
     }
 }
@@ -338,6 +341,7 @@ impl App {
         // populate loaded transactions
         self.trans_history.items.clear();
         self.trans_history.items = transactions.0;
+        self.acct_balance = format!("{:.2}", transactions.1);
     }
 
     pub async fn create_or_update_transaction(&mut self, create: bool) {
