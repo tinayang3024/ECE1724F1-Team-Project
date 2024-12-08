@@ -523,7 +523,7 @@ impl App {
     // account list 
     pub fn render_acct_list(&mut self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
-            .title(Line::raw("Associated Account List").centered())
+            .title(Line::raw("Associated Accounts").centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
             .border_style(TODO_HEADER_STYLE)

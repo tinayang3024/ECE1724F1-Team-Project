@@ -49,8 +49,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     let vert_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
+            Constraint::Percentage(5),
+            Constraint::Percentage(25),
             Constraint::Percentage(70),
         ])
         .split(frame.area());
@@ -85,6 +85,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
     // debug message + key instruction
     let mut key_instructions: Vec<String> = Vec::new();
+    key_instructions.push(String::from("Instructions: "));
+
     match app.page {
         Page::Login => {
             if app.input_mode == InputMode::Editing {
@@ -103,48 +105,53 @@ pub fn render(app: &mut App, frame: &mut Frame) {
             } else {
                 key_instructions.push(String::from("Press l to select account"));
                 key_instructions.push(String::from("Press a to create new account"));
-                key_instructions.push(String::from("Press t to create new transaction"));
+                key_instructions.push(String::from("Press b to delete user"));
                 if app.new_account.acct_id != "" {
-                    key_instructions.push(String::from("Press up and down to select account info"));
-                    key_instructions.push(String::from("Press e to overwrite account info"));
-                    key_instructions.push(String::from("Press ? to save the changes to the account (to be implemented)"));    
-                    key_instructions.push(String::from("Press e to overwrite account info"));
+                    key_instructions.push(String::from("Press t to create new transaction"));
+                    key_instructions.push(String::from("Press up and down to select account info or filter options"));
+                    key_instructions.push(String::from("Press e to overwrite account info or filter options"));
+                    key_instructions.push(String::from("Press enter to save the changes to the account or filter transactions"));    
                     key_instructions.push(String::from("Press s to select transaction"));
+                    key_instructions.push(String::from("Press d to delete account"));
                 } 
             }
         },
         Page::NewAccount => {
             key_instructions.push(String::from("Press up and down to select account info"));
             key_instructions.push(String::from("Press e to enter account info"));
-            key_instructions.push(String::from("Press s to create the account (to be implemented)"));        
+            key_instructions.push(String::from("Press c to to back to account details page"));
+            key_instructions.push(String::from("Press enter to create the account"));        
         },
         Page::NewTransaction => {
             key_instructions.push(String::from("Press up and down to select transaction info"));
             key_instructions.push(String::from("Press e to enter transaction info"));
-            key_instructions.push(String::from("Press s to create the transaction (to be implemented)"));
+            key_instructions.push(String::from("Press c to to back to account details page"));
+            key_instructions.push(String::from("Press enter to create the transaction"));
         },
         Page::EditTransaction => {
             key_instructions.push(String::from("Press up and down to select transaction info"));
             key_instructions.push(String::from("Press e to overwrite transaction info"));
-            key_instructions.push(String::from("Press s to save changes to the transaction (to be implemented)"));
+            key_instructions.push(String::from("Press enter to save changes to the transaction"));
+            key_instructions.push(String::from("Press c to to back to account details page"));
+            key_instructions.push(String::from("Press d to delete the transaction"));
         }
     }     
 
-    // frame.render_widget(
-    //     Paragraph::new(key_instructions.join("\n")).block(Block::bordered()),
-    //     subtitle,
-    // );
-
-    // debug messages
     frame.render_widget(
-        Paragraph::new(format!("input_content {:?}; page {:?}, t_q_list: {:?}, debug_msg: {:?}", 
-            app.input_content, 
-            app.page,
-            app.new_trans_question_list,
-            app.debug_msg
-        )).block(Block::bordered()),
+        Paragraph::new(key_instructions.join("\n")).block(Block::bordered()),
         subtitle,
     );
+
+    // debug messages
+    // frame.render_widget(
+    //     Paragraph::new(format!("input_content {:?}; page {:?}, t_q_list: {:?}, debug_msg: {:?}", 
+    //         app.input_content, 
+    //         app.page,
+    //         app.new_trans_question_list,
+    //         app.debug_msg
+    //     )).block(Block::bordered()),
+    //     subtitle,
+    // );
 
 
     let left_content_inner_layout = Layout::default()

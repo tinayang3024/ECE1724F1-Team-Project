@@ -79,6 +79,11 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     KeyCode::Char('a') => {
                         // add new account
                         app.page = Page::NewAccount;
+                        app.new_account.acct_id = "".to_string();
+                        app.new_account.acct_name = "".to_string();
+                        app.new_account.acct_type = "".to_string();
+                        app.new_account.user_id = "".to_string();
+                        app.new_account.card_limit = 0.0;
                         app.input_content = InputContent::AccountName;
                     },
                     KeyCode::Char('t') => {
@@ -124,6 +129,8 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     KeyCode::Enter => {
                         app.confirm_selection();
                         if app.list_content == ListType::Acct {
+                            app.filter_trans_category = "".to_string();
+                            app.filter_trans_type = "".to_string();
                             app.refresh_transactions().await;
                         }
                     },
@@ -140,7 +147,7 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     },
                     KeyCode::Up => app.prev_input(),
                     KeyCode::Down => app.next_input(),
-                    KeyCode::Char('b') => {
+                    KeyCode::Char('c') => {
                         app.page = Page::AccountDetails;
                     },
                     KeyCode::Char('e') => {
@@ -171,13 +178,13 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     KeyCode::Esc | KeyCode::Char('q') => {
                         app.quit();
                     },
-                    KeyCode::Char('b') => {
-                        app.page = Page::AccountDetails;
-                    },
                     KeyCode::Up => app.prev_input(),
                     KeyCode::Down => app.next_input(),
                     KeyCode::Char('e') => {
                         app.input_mode = InputMode::Editing;
+                    },
+                    KeyCode::Char('c') => {
+                        app.page = Page::AccountDetails;
                     },
                     KeyCode::Char('d') => {
                         if app.page == Page::EditTransaction {
