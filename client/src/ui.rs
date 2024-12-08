@@ -187,7 +187,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
             Constraint::Percentage(10), // account type
             Constraint::Percentage(10), // card limit
             Constraint::Percentage(10), // padding
-            Constraint::Percentage(30), // list of transactions
+            Constraint::Percentage(10), // padding
+            Constraint::Percentage(20), // list of transactions
             Constraint::Percentage(10), // padding
         ])
         .split(right_content_inner_layout);
@@ -195,7 +196,9 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     let right_row_2_position = right_content_inner_layout_sub[2];
     let right_row_3_position = right_content_inner_layout_sub[3];
     let right_row_4_position = right_content_inner_layout_sub[4];
-    let trans_his_position = right_content_inner_layout_sub[6];
+    let right_row_5_position = right_content_inner_layout_sub[5];
+    let right_row_6_position = right_content_inner_layout_sub[6];
+    let trans_his_position = right_content_inner_layout_sub[7];
 
     // if app.username.is_empty() {
     match app.page {
@@ -236,10 +239,12 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                 render_input_field(app, frame, right_row_1_position, "Account Name".to_string(), app.new_account.acct_name.to_string(), InputContent::AccountName);
                 render_input_field(app, frame, right_row_2_position, "Account Type".to_string(), app.new_account.acct_type.to_string(), InputContent::AccountType);
                 render_input_field(app, frame, right_row_3_position, "Card Limit".to_string(), app.new_account.card_limit.to_string(), InputContent::AccountLimit);
+                render_input_field(app, frame, right_row_4_position, "Filter Transaction Type".to_string(), app.filter_trans_type.to_string(), InputContent::FilterTransType);
+                render_input_field(app, frame, right_row_5_position, "Filter Transaction Category".to_string(), app.filter_trans_category.to_string(), InputContent::FilterTransCategory);
 
                 frame.render_widget(
                     Paragraph::new(format!("Balance: {}", app.acct_balance)),
-                    right_row_4_position,
+                    right_row_6_position,
                 );
 
                 app.render_trans_list(trans_his_position, frame.buffer_mut());

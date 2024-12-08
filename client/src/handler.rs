@@ -103,6 +103,7 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     }
                     KeyCode::Enter => {
                         app.update_account().await;
+                        app.refresh_transactions().await;
                     }
                     _ => {}
                 },

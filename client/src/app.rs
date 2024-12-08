@@ -84,6 +84,8 @@ pub struct App {
     pub debug_msg: String,
 
     pub acct_balance: String,
+    pub filter_trans_type: String,
+    pub filter_trans_category: String,
 }
 
 impl Default for App {
@@ -159,9 +161,13 @@ impl Default for App {
                 InputContent::AccountName,
                 InputContent::AccountType,
                 InputContent::AccountLimit,
+                InputContent::FilterTransType,
+                InputContent::FilterTransCategory,
             ],
             debug_msg: String::new(),
             acct_balance: String::new(),
+            filter_trans_type: String::new(),
+            filter_trans_category: String::new(),
         }
     }
 }
@@ -282,6 +288,8 @@ impl App {
             InputContent::TransactionCategory => self.new_trans.category = self.input.clone(),
             InputContent::TransactionDescription => self.new_trans.description = self.input.clone(),
             InputContent::TransactionType => self.new_trans.trans_type = self.input.clone(),
+            InputContent::FilterTransType => self.filter_trans_type = self.input.clone(),
+            InputContent::FilterTransCategory => self.filter_trans_category = self.input.clone(),
         };
         self.input.clear();
         self.input_mode = InputMode::Normal;
@@ -328,15 +336,11 @@ impl App {
     }
 
     pub async fn refresh_transactions(&mut self) {
-        // Tina TODO: Change None to something that user enters?
-        // Or add a new function for transaction filtering?
         let transactions = query_account(
             self.new_account.acct_id.parse().unwrap(),
-            None,
-            None,
+            if self.filter_trans_type == "" { None } else { Some(self.filter_trans_type.clone()) },
+            if self.filter_trans_category == "" { None } else { Some(self.filter_trans_category.clone()) },
         ).await;
-        // self.debug_msg = transactions.0.len().to_string();
-        // self.trans_history.items = transactions.0;
 
         // populate loaded transactions
         self.trans_history.items.clear();

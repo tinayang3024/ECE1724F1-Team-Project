@@ -48,6 +48,8 @@ pub enum InputContent {
     TransactionAmount,
     TransactionCategory,
     TransactionDescription,
+    FilterTransType,
+    FilterTransCategory,
 }
 
 #[derive(Debug, PartialEq, Clone)]
