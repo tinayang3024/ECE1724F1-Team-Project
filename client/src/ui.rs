@@ -142,7 +142,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         subtitle,
     );
 
-    // debug messages
+    // // debug messages
     // frame.render_widget(
     //     Paragraph::new(format!("input_content {:?}; page {:?}, t_q_list: {:?}, debug_msg: {:?}", 
     //         app.input_content, 

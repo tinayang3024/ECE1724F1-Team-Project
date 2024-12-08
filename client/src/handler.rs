@@ -68,7 +68,7 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     },
                     // not working somehow currently
                     KeyCode::Char('b') => {
-                        app.delete_user();
+                        app.delete_user().await;
                         app.page = Page::Login;
                     },
                     KeyCode::Char('e') => {

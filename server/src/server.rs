@@ -82,8 +82,8 @@ async fn query_or_create_user(
 }
 
 async fn delete_user(pool: web::Data<PgPool>, user_data: web::Form<UserData>) -> impl Responder {
-    // println!("deleting user {:?}", username.clone());
     let username = &user_data.username;
+    println!("deleting user {:?}", username.clone());
     match db::delete_single_user(&pool, username).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
