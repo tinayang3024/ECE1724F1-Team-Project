@@ -62,11 +62,13 @@ To communicate with the back-end database, the Personal Finance tracker will nee
 ## User's (or Developer’s) Guide
 
 ### User's Guide
-Features
-Add a Record: Log an expense or income with a description and amount.
-Delete a Record: Remove a specific record by its unique ID.
-Update a Record: Modify an existing record (e.g., update the description or amount).
-View Records: Fetch and display all stored records.
+- Create a new user / view existing user information
+- Create a new account / update existing account name or limit
+- Log a new transaction record / updating existing transaction information
+- Delete a user
+- Delete an account
+- Delete a transaction
+- View records
 
 ### Developer's Guide
 
@@ -103,7 +105,7 @@ Developers can use these endpoints to integrate the server with other clients or
 
 - Account API
 
-  - Create a new account or return existing account information
+  - Create a new account or update existing account name or limit
 
     URL: `/create_or_update_account`
 
@@ -127,7 +129,7 @@ Developers can use these endpoints to integrate the server with other clients or
 
 - Transaction API
 
-  - Create a new transaction record or update existing transaction
+  - Create a new transaction record or update existing transaction information
     
     URL: `/create_or_update_transaction`
     
@@ -151,7 +153,7 @@ Developers can use these endpoints to integrate the server with other clients or
     
     METHOD: GET
 
-- View records API
+- View Records API
 
   - Query user's financial records by account, transaction type or category
     
