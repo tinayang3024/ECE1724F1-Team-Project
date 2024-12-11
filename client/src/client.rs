@@ -64,7 +64,7 @@ impl ServerTransaction {
 // for account in accounts.iter() {
 //     println!("Got account_id {} account_name {} user_id {}", account.acct_id, account.acct_name, account.user_id);
 // }
-pub async fn query_or_create_user(username: &str) -> Vec<Account> {
+pub async fn query_or_create_user(username: &str) -> Result<Vec<Account>, String> {
     // TODO: need to convert card type number into text
     let url = format!("{SERVER_BASE_URL}/query_or_create_user");
     let client = reqwest::Client::new();
@@ -76,8 +76,7 @@ pub async fn query_or_create_user(username: &str) -> Vec<Account> {
         .await
         .unwrap();
     if !resp.status().is_success() {
-        // Just panic for now
-        panic!("Error: Reqwest failed");
+        return Err(String::from("Error: Reqwest failed"));
     }
 
     let body = resp.text().await.unwrap();
@@ -87,7 +86,7 @@ pub async fn query_or_create_user(username: &str) -> Vec<Account> {
         .map(|a| a.to_account())
         .collect::<Vec<Account>>();
 
-    accounts
+    Ok(accounts)
 }
 
 // Example usage:
@@ -96,7 +95,7 @@ pub async fn create_or_update_account(acct_id: Option<String>,
                                       username: &str,
                                       acct_name: &str,
                                       acct_type: &str,
-                                      card_limit: f64) -> String {
+                                      card_limit: f64) -> Result<String, String> {
     let url = format!("{SERVER_BASE_URL}/create_or_update_account");
     let mut post_body = if let Some(aid) = acct_id {
         format!("account_id={}&", aid)
@@ -117,11 +116,10 @@ pub async fn create_or_update_account(acct_id: Option<String>,
         .await
         .unwrap();
     if !resp.status().is_success() {
-        // Just panic for now
-        panic!("Error: Reqwest failed");
+        return Err(String::from("Error: Reqwest failed"));
     }
 
-    resp.text().await.unwrap()
+    Ok(resp.text().await.unwrap())
 }
 
 // Example usage:
@@ -132,7 +130,7 @@ pub async fn create_or_update_transaction(trans_id: Option<String>,
                                           category: &str,
                                           amt: f64,
                                           descrip: &str,
-                                          acct_id: &str) -> String {
+                                          acct_id: &str) -> Result<String, String> {
 
     let url = format!("{SERVER_BASE_URL}/create_or_update_transaction");
     let mut post_body = if let Some(tid) = trans_id {
@@ -156,14 +154,13 @@ pub async fn create_or_update_transaction(trans_id: Option<String>,
         .await
         .unwrap();
     if !resp.status().is_success() {
-        // Just panic for now
-        panic!("Error: Reqwest failed - {:?}", post_body);
+        return Err(String::from("Error: Reqwest failed"));
     }
 
-    resp.text().await.unwrap()
+    Ok(resp.text().await.unwrap())
 }
 
-pub async fn delete_user(username: &str) -> bool {
+pub async fn delete_user(username: &str) -> Result<bool, String> {
     let url = format!("{SERVER_BASE_URL}/delete_user");
     let client = reqwest::Client::new();
     let resp = client
@@ -173,34 +170,31 @@ pub async fn delete_user(username: &str) -> bool {
         .send()
         .await;
     match resp {
-        Ok(response) => response.status().is_success(),
+        Ok(response) => Ok(response.status().is_success()),
         Err(e) => {
-            eprintln!("Error in delete_user: {}", e);
-            false
+            Err(format!("Error in delete_user: {}", e))
         }
     }
 }
 
-pub async fn delete_account(account_id: i64) -> bool {
+pub async fn delete_account(account_id: i64) -> Result<bool, String> {
     let url = format!("{SERVER_BASE_URL}/delete_account/{account_id}");
     let resp = reqwest::get(&url).await;
     match resp {
-        Ok(response) => response.status().is_success(),
+        Ok(response) => Ok(response.status().is_success()),
         Err(e) => {
-            eprintln!("Error in delete_account: {}", e);
-            false
+            Err(format!("Error in delete_account: {}", e))
         }
     }
 }
 
-pub async fn delete_transaction(transaction_id: i64) -> bool {
+pub async fn delete_transaction(transaction_id: i64) -> Result<bool, String> {
     let url = format!("{SERVER_BASE_URL}/delete_transaction/{transaction_id}");
     let resp = reqwest::get(&url).await;
     match resp {
-        Ok(response) => response.status().is_success(),
+        Ok(response) => Ok(response.status().is_success()),
         Err(e) => {
-            eprintln!("Error in delete_transaction: {}", e);
-            false
+            Err(format!("Error in delete_transaction: {}", e))
         }
     }
 }
@@ -211,7 +205,7 @@ pub async fn query_account(
     account_id: i64,
     trans_type: Option<String>,
     category: Option<String>,
-) -> (Vec<TransRecord>, f64) {
+) -> Result<(Vec<TransRecord>, f64), String> {
     let url = format!("{SERVER_BASE_URL}/query_account");
 
 
@@ -232,15 +226,14 @@ pub async fn query_account(
         .await
         .unwrap();
     if !resp.status().is_success() {
-        // Just panic for now
-        panic!("Error: Reqwest failed");
+        return Err(String::from("Error: Reqwest failed"));
     }
 
     let body = resp.text().await.unwrap();
     let transactions: (Vec<ServerTransaction>, f64) = serde_json::from_str(&body).unwrap();
-    (transactions.0
+    Ok((transactions.0
         .iter()
         .map(|t| t.to_transaction())
         .collect::<Vec<TransRecord>>(),
-     transactions.1)
+        transactions.1))
 }

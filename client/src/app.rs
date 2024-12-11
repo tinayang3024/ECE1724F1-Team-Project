@@ -223,7 +223,12 @@ impl App {
     }
 
     pub async fn refresh_user_data(&mut self) {
-        let accounts = query_or_create_user(&self.username).await;
+        let accounts =
+            if let Ok(accts) = query_or_create_user(&self.username).await {
+                accts
+            } else {
+                return;
+            };
                 
         // self.debug_msg = format!("{:?}", accounts.iter().count());
 
@@ -247,9 +252,12 @@ impl App {
 
         
         if self.username != "" {
-            let deletion_status = delete_user(
-                &self.username
-            ).await;
+            let deletion_status =
+                if let Ok(ds) = delete_user(&self.username).await {
+                    ds
+                } else {
+                    return;
+                };
             self.debug_msg = format!("{:?} deleted", deletion_status);
             self.username = "".to_string();        
         } else {
@@ -286,27 +294,28 @@ impl App {
     }
 
     pub async fn create_new_account(&mut self) {
-        let _acct_id_str = create_or_update_account(
+        let _ = create_or_update_account(
             None,
             self.username.as_str(),
             self.new_account.acct_name.as_str(),
             self.new_account.acct_type.as_str(),
             self.new_account.card_limit
-        ).await;
-        // self.debug_msg = acct_id_str;
+        )
+        .await;
         
         // reload profile data after creating new account
         self.refresh_user_data().await;
     }
 
     pub async fn update_account(&mut self) {
-        let _acct_id_str = create_or_update_account(
+        let _ = create_or_update_account(
             Some(self.new_account.acct_id.clone()),
             self.username.as_str(),
             self.new_account.acct_name.as_str(),
             self.new_account.acct_type.as_str(),
             self.new_account.card_limit
-        ).await;
+        )
+        .await;
         // self.debug_msg = acct_id_str;
 
         // reload profile data after creating new account
@@ -315,9 +324,10 @@ impl App {
 
     pub async fn delete_account(&mut self) {
         if self.new_account.acct_id != "" {
-            let _deletion_status = delete_account(
+            let _ = delete_account(
                 self.new_account.acct_id.parse().unwrap(),
-            ).await;
+            )
+            .await;
             // self.debug_msg = format!("{:?}", deletion_status);
             self.new_account.acct_id = "".to_string();
         }
@@ -326,11 +336,16 @@ impl App {
     }
 
     pub async fn refresh_transactions(&mut self) {
-        let transactions = query_account(
-            self.new_account.acct_id.parse().unwrap(),
-            if self.filter_trans_type == "" { None } else { Some(self.filter_trans_type.clone()) },
-            if self.filter_trans_category == "" { None } else { Some(self.filter_trans_category.clone()) },
-        ).await;
+        let transactions = 
+            if let Ok(trans) = query_account(
+                self.new_account.acct_id.parse().unwrap(),
+                if self.filter_trans_type == "" { None } else { Some(self.filter_trans_type.clone()) },
+                if self.filter_trans_category == "" { None } else { Some(self.filter_trans_category.clone()) },
+            ).await {
+                trans
+            } else {
+                return;
+            };
 
         // populate loaded transactions
         self.trans_history.items.clear();
@@ -346,7 +361,7 @@ impl App {
         };
     
         let trans_id = 
-            create_or_update_transaction(
+            if let Ok(tid) = create_or_update_transaction(
                 if create { None } else { Some(self.new_trans.transaction_id.clone()) },
                 &timestamp,
                 &self.new_trans.trans_type,
@@ -354,7 +369,11 @@ impl App {
                 self.new_trans.amount,
                 &self.new_trans.description,
                 &self.new_account.acct_id,
-            ).await;
+            ).await {
+                tid
+            } else {
+                return;
+            };
     
         // self.debug_msg = trans_id.clone();
         self.new_trans.transaction_id = trans_id;
@@ -365,9 +384,10 @@ impl App {
 
     pub async fn delete_transaction(&mut self) {
         if self.new_trans.transaction_id != "" {
-            let _deletion_status = delete_transaction(
+            let _ = delete_transaction(
                 self.new_trans.transaction_id.parse().unwrap(),
-            ).await;
+            )
+            .await;
             // self.debug_msg = format!("{:?}", deletion_status);
             self.new_trans.transaction_id = "".to_string();
         }
