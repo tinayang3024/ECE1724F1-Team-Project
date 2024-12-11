@@ -5,23 +5,6 @@ use futures::{FutureExt, StreamExt};
 use tokio::sync::mpsc;
 
 use crate::app::AppResult;
-use crate::input::{ 
-  InputMode, 
-  Page, 
-  InputContent,
-  ListType,
-  TransRecord,
-  Account,
-  TransList,
-  AccountList,
-  TODO_HEADER_STYLE,
-  NORMAL_ROW_BG,
-  ALT_ROW_BG_COLOR,
-  SELECTED_STYLE,
-  TEXT_FG_COLOR,
-  COMPLETED_TEXT_FG_COLOR,
-};
-
 
 /// Terminal events.
 #[derive(Clone, Copy, Debug)]
@@ -56,7 +39,7 @@ impl EventHandler {
             let mut reader = crossterm::event::EventStream::new();
             let mut tick = tokio::time::interval(tick_rate);
             loop {
-                let tick_delay = tick.tick();
+                let _tick_delay = tick.tick();
                 let crossterm_event = reader.next().fuse();
                 tokio::select! {
                   _ = _sender.closed() => {

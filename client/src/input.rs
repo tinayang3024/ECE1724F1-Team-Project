@@ -1,16 +1,10 @@
 use ratatui::{
-    crossterm::event::{self, Event, KeyCode, KeyEventKind},
-    layout::{Constraint, Layout, Position},
     style::{
-        palette::tailwind::{BLUE, GREEN, SLATE},
-        Color, Modifier, Style, Stylize,
+        palette::tailwind::SLATE,
+        Color, Modifier, Style,
     },
-    text::{Line, Span, Text},
-    widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Padding, Paragraph,
-        StatefulWidget, Widget, Wrap,
-    },
-    DefaultTerminal, Frame,
+    text::Line,
+    widgets::{ListItem, ListState},
 };
 
 pub const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(Color::Cyan);

@@ -1,21 +1,11 @@
 use crate::app::{App, AppResult};
-use crossterm::event::{KeyCode, KeyEventKind, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEventKind, KeyEvent};
 use crate::input::{ 
     InputMode, 
     Page, 
     InputContent,
     ListType,
-    TransRecord,
-    Account,
-    TransList,
-    AccountList,
-    TODO_HEADER_STYLE,
-    NORMAL_ROW_BG,
-    ALT_ROW_BG_COLOR,
-    SELECTED_STYLE,
-    TEXT_FG_COLOR,
-    COMPLETED_TEXT_FG_COLOR,
- };
+};
 
 pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
     // todo: this is here to ensure terminal cannot hang, 

@@ -12,8 +12,6 @@ use crate::input::{
     NORMAL_ROW_BG,
     ALT_ROW_BG_COLOR,
     SELECTED_STYLE,
-    TEXT_FG_COLOR,
-    COMPLETED_TEXT_FG_COLOR,
  };
 use crate::client::{
     query_or_create_user,
@@ -27,19 +25,11 @@ use crate::client::{
 use chrono::Local;
 use ratatui::{
     buffer::Buffer,
-    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
-    layout::{Constraint, Layout, Rect},
-    style::{
-        palette::tailwind::{BLUE, GREEN, SLATE},
-        Color, Modifier, Style, Stylize,
-    },
+    layout::Rect,
+    style::{Color, Stylize},
     symbols,
     text::Line,
-    widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Padding, Paragraph,
-        StatefulWidget, Widget, Wrap,
-    },
-    DefaultTerminal,
+    widgets::{Block, Borders, HighlightSpacing, List, ListItem, StatefulWidget},
 };
 
 /// Application result type.
@@ -296,7 +286,7 @@ impl App {
     }
 
     pub async fn create_new_account(&mut self) {
-        let acct_id_str = create_or_update_account(
+        let _acct_id_str = create_or_update_account(
             None,
             self.username.as_str(),
             self.new_account.acct_name.as_str(),
@@ -310,7 +300,7 @@ impl App {
     }
 
     pub async fn update_account(&mut self) {
-        let acct_id_str = create_or_update_account(
+        let _acct_id_str = create_or_update_account(
             Some(self.new_account.acct_id.clone()),
             self.username.as_str(),
             self.new_account.acct_name.as_str(),
@@ -325,7 +315,7 @@ impl App {
 
     pub async fn delete_account(&mut self) {
         if self.new_account.acct_id != "" {
-            let deletion_status = delete_account(
+            let _deletion_status = delete_account(
                 self.new_account.acct_id.parse().unwrap(),
             ).await;
             // self.debug_msg = format!("{:?}", deletion_status);
@@ -375,7 +365,7 @@ impl App {
 
     pub async fn delete_transaction(&mut self) {
         if self.new_trans.transaction_id != "" {
-            let deletion_status = delete_transaction(
+            let _deletion_status = delete_transaction(
                 self.new_trans.transaction_id.parse().unwrap(),
             ).await;
             // self.debug_msg = format!("{:?}", deletion_status);

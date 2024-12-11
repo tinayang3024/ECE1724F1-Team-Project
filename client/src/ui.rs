@@ -1,7 +1,7 @@
 use ratatui::{
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Style},
-    widgets::{Block, BorderType, Paragraph},
+    widgets::{Block, Paragraph},
     Frame,
 };
 use ratatui::prelude::*;
@@ -10,18 +10,7 @@ use crate::input::{
     InputMode, 
     Page, 
     InputContent,
-    ListType,
-    TransRecord,
-    Account,
-    TransList,
-    AccountList,
-    TODO_HEADER_STYLE,
-    NORMAL_ROW_BG,
-    ALT_ROW_BG_COLOR,
-    SELECTED_STYLE,
-    TEXT_FG_COLOR,
-    COMPLETED_TEXT_FG_COLOR,
- };
+};
 
 
 // not doing input validation for number inputs yet
