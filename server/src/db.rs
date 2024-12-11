@@ -6,7 +6,7 @@ use strum_macros::{Display, EnumString};
 pub const PG_CONNECTION_STR: &str =
     "postgres://postgres:1724_password@database-1.chmwu04uiq6g.us-east-2.rds.amazonaws.com:5432/financedb";
 
-#[derive(Display, EnumString, Deserialize)]
+#[derive(Debug, Display, EnumString, Deserialize)]
 pub enum AccountType {
     Chequing,
     Credit,
@@ -118,13 +118,10 @@ pub async fn query_account_transactions(
     transaction_type: &Option<TransactionType>,
     category: &Option<String>,
 ) -> Result<(Vec<Transaction>, f64), sqlx::Error> {
-    println!("1");
     let transactions =
         transaction_get_all_for_account(pool, account_id, transaction_type, category).await?;
-    println!("2");
     let transaction_sum = 
         transaction_get_sum_for_account(pool, account_id, transaction_type, category).await?;
-    println!("3");
     Ok((transactions, transaction_sum))
 }
 
@@ -201,10 +198,8 @@ WHERE username=($1)
     .fetch_one(pool)
     .await?;
 
-    println!(
-        "::[DEBUG] Found user_id: {} from username: {}",
-        user.user_id, user.username
-    );
+    let _username = user.username.clone();
+
     Ok(user.user_id)
 }
 

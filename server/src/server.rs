@@ -74,18 +74,25 @@ async fn query_or_create_user(
     pool: web::Data<PgPool>,
     user_data: web::Form<UserData>,
 ) -> impl Responder {
+    println!("::[SERVER LOG] Request: query_or_create_user...");
     let username = &user_data.username;
     match db::query_or_create_user(&pool, username).await {
-        Ok(result) => HttpResponse::Ok().json(result),
+        Ok(result) => {
+            println!("::[SERVER LOG] Done");
+            HttpResponse::Ok().json(result)
+        },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }
 
 async fn delete_user(pool: web::Data<PgPool>, user_data: web::Form<UserData>) -> impl Responder {
+    println!("::[SERVER LOG] Request: delete_user...");
     let username = &user_data.username;
-    println!("deleting user {:?}", username.clone());
     match db::delete_single_user(&pool, username).await {
-        Ok(_) => HttpResponse::Ok().finish(),
+        Ok(_) => {
+            println!("::[SERVER LOG] Done");
+            HttpResponse::Ok().finish()
+        },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }
@@ -94,9 +101,8 @@ async fn create_or_update_account(
     pool: web::Data<PgPool>,
     info: web::Form<AccountInfo>,
 ) -> impl Responder {
-    println!("create_or_update_account triggered");
+    println!("::[SERVER LOG] Request: create_or_update_account...");
 
-    // tbd: pass username instead of user_id
     let username = &info.username;
     let account_name = &info.account_name;
     let account_type = &info.account_type;
@@ -111,15 +117,21 @@ async fn create_or_update_account(
     )
     .await
     {
-        Ok(result) => HttpResponse::Ok().json(result),
+        Ok(result) => {
+            println!("::[SERVER LOG] Done");
+            HttpResponse::Ok().json(result)
+        },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }
 
 async fn delete_account(pool: web::Data<PgPool>, account_id: web::Path<i64>) -> impl Responder {
-    println!("delete_account triggered");
+    println!("::[SERVER LOG] Request: delete_account...");
     match db::delete_single_account(&pool, account_id.into_inner()).await {
-        Ok(_) => HttpResponse::Ok().finish(), // return status code: 200 OK
+        Ok(_) => {
+            println!("::[SERVER LOG] Done");
+            HttpResponse::Ok().finish() // return status code: 200 OK
+        },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }
@@ -128,7 +140,7 @@ async fn create_or_update_transaction(
     pool: web::Data<PgPool>,
     info: web::Form<TransactionInfo>,
 ) -> impl Responder {
-    println!("create_or_update_transaction triggered");
+    println!("::[SERVER LOG] Request: create_or_update_transaction");
 
     let transaction_date = &info.transaction_date.unwrap();
     let transaction_type = &info.transaction_type.as_ref().unwrap();
@@ -137,8 +149,8 @@ async fn create_or_update_transaction(
     let transaction_memo = &info.transaction_memo.as_ref().unwrap();
     let account_id = info.account_id;
 
-    println!("create/update transaction triggered: transaction_date {:?} category {:?} transaction_memo {:?}", 
-        transaction_date, category, transaction_memo);
+    // println!("create/update transaction triggered: transaction_date {:?} category {:?} transaction_memo {:?}", 
+    //     transaction_date, category, transaction_memo);
 
     match db::create_or_update_transaction(
         &pool,
@@ -153,7 +165,7 @@ async fn create_or_update_transaction(
     .await
     {
         Ok(result) => {
-            println!("create/update transaction got: {:?}", result);
+            println!("::[SERVER LOG] Done");
             HttpResponse::Ok().json(result)
         },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
@@ -164,8 +176,12 @@ async fn delete_transaction(
     pool: web::Data<PgPool>,
     transaction_id: web::Path<i64>,
 ) -> impl Responder {
+    println!("::[SERVER LOG] Request: delete_transaction");
     match db::delete_single_transaction(&pool, transaction_id.into_inner()).await {
-        Ok(_) => HttpResponse::Ok().finish(),
+        Ok(_) => {
+            println!("::[SERVER LOG] Done");
+            HttpResponse::Ok().finish()
+        },
         Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e)),
     }
 }
@@ -174,7 +190,7 @@ async fn query_account(
     pool: web::Data<PgPool>,
     info: web::Form<TransactionInfo>,
 ) -> impl Responder {
-    println!("query_account triggered");
+    println!("::[SERVER LOG] Request: query_account");
 
     let account_id = info.account_id;
     match db::query_account_transactions(
@@ -184,13 +200,10 @@ async fn query_account(
         &info.category,
     ).await {
         Ok(result) => {
-            println!("query account got: {:?}", result);
+            println!("::[SERVER LOG] Done");
             HttpResponse::Ok().json(result)
         }
-        Err(e) => {
-            println!("ERROR query account: {}", e);
-            HttpResponse::InternalServerError().json(format!("Error: {}", e))
-        }
+        Err(e) => HttpResponse::InternalServerError().json(format!("Error: {}", e))
     }
 }
 
