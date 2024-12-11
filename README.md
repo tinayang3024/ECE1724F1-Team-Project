@@ -62,6 +62,8 @@ To communicate with the back-end database, the Personal Finance tracker will nee
 ## User's (or Developer’s) Guide
 
 ### User's Guide
+
+Users can perform the following operations through the frontend interface. Please follow the set up instructions in Reproducibility Guide section below to run both the server and client components. Ensure server is running before running clients to start the tool.
 - Create a new user / view existing user information
 - Create a new account / update existing account name or limit
 - Log a new transaction record / updating existing transaction information
@@ -73,7 +75,7 @@ To communicate with the back-end database, the Personal Finance tracker will nee
 ### Developer's Guide
 
 #### Server API endpoints
-Developers can use these endpoints to integrate the server with other clients or use curl to call the APIs:
+Developers can use these endpoints to integrate the server with other clients or use curl to call the APIs. All create and query APIs will return results in JSON format, and all deleting record APIs will return a `200 OK` status upon successful operation.
 
 - User API
 
@@ -83,11 +85,9 @@ Developers can use these endpoints to integrate the server with other clients or
 
     METHOD: POST
 
-    Example Request Body: 
+    Example Request Body (as `web::Form`): 
     ```rust 
-    {
-        "username": "Renli Zhang"
-    }
+    username=Renli Zhang
     ```
 
   - Delete a user
@@ -96,11 +96,9 @@ Developers can use these endpoints to integrate the server with other clients or
 
     METHOD: POST
 
-    Example Request Body: 
+    Example Request Body (as `web::Form`): 
     ```rust 
-    {
-        "username": "Renli Zhang"
-    }
+    username=Renli Zhang
     ```
 
 - Account API
@@ -111,14 +109,9 @@ Developers can use these endpoints to integrate the server with other clients or
 
     METHOD: POST
 
-    Example Request Body: 
+    Example Request Body (as `web::Form`): 
     ```rust 
-    {
-        "username": "Renli Zhang", 
-        "account_name": "First account", 
-        "account_type": "Chequing", 
-        "account_limit":2000
-    }
+    username=Renli Zhang&account_name=First account&account_type=Chequing&account_limit=2000
     ```
 
   - Delete an account
@@ -135,16 +128,9 @@ Developers can use these endpoints to integrate the server with other clients or
     
     METHOD: POST
 
-    Example Request Body: 
+    Example Request Body (as `web::Form`): 
     ```rust 
-    {
-        "transaction_date": "2024-11-28", 
-        "transaction_type": "Income", 
-        "category": "work", 
-        "amount":500, 
-        "transaction_memo": "first payment", 
-        "account_id": 1
-    }
+    transaction_date=2024-11-28&transaction_type=Income&category=work&amount=500&transaction_memo=first payment&account_id=1
     ```
 
   - Delete a transaction
@@ -161,13 +147,9 @@ Developers can use these endpoints to integrate the server with other clients or
     
     METHOD: POST
 
-    Example Request Body: 
+    Example Request Body (as `web::Form`): 
     ```rust 
-    {
-        "transaction_type": "Income", 
-        "category": "work", 
-        "account_id": 1
-    }
+    transaction_type=Income&category=work&account_id=1
     ```
 
 ## Reproducibility Guide
@@ -220,17 +202,17 @@ The tool should be ready to use.
       <td>Tina</td>
     </tr>
     <tr>
-      <td rowspan=3>Basic user query implementation</td>
+      <td rowspan=3>API implementation</td>
       <td rowspan=3>2 weeks</td>
-      <td>User-related queries</td>
+      <td>Server API Handler</td>
       <td>Renli</td>
     </tr>
     <tr>
-      <td>Account-related queries</td>
+      <td>Database Query API</td>
       <td>Sophie</td>
     </tr>
     <tr>
-      <td>Transaction-related queries</td>
+      <td>Frontend API Call</td>
       <td>Tina</td>
     </tr>
     <tr>
