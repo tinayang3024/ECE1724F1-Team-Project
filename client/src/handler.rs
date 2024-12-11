@@ -181,6 +181,10 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                         if app.page == Page::EditTransaction {
                             app.delete_transaction().await;
                             app.page = Page::AccountDetails;
+                            if app.new_account.acct_id != "" {
+                                app.list_content = ListType::Trans;
+                                app.select_first();
+                            }
                         }
                     }
                     KeyCode::Enter => {
