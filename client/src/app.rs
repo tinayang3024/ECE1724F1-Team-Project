@@ -85,41 +85,8 @@ impl Default for App {
             counter: 0,
             username: String::new(), // Default to an empty string
             // account_selected_idx: 0, // Default to an empty string
-            accounts: AccountList::from_iter([
-                (
-                    "tina's account_id",
-                    "tina's demo account",
-                    "tina's user_id",
-                    "Saving",
-                    100.0,
-                ),
-                (
-                    "sophie's account_id",
-                    "sophie's demo account",
-                    "sophie's user_id",
-                    "Credit",
-                    200.0,
-                ),
-            ]),   
-            trans_history: TransList::from_iter([
-                (
-                    "transaction_id_1",
-                    "2024/01/01",
-                    "Expense",
-                    "Food",
-                    "spent for lunch on 1/1/2024",
-                    20.1,
-                ),
-                (
-                    "transaction_id_2",
-                    "2024/01/02",
-                    "Income",
-                    "Salary",
-                    "got paycheck on 1/1/2024",
-                    3000.0,
-                ),
-                
-            ]),  
+            accounts: AccountList::from_iter([]),   
+            trans_history: TransList::from_iter([]),  
             new_account: Account::new(
                 "",
                 "",
@@ -229,8 +196,6 @@ impl App {
             } else {
                 return;
             };
-                
-        // self.debug_msg = format!("{:?}", accounts.iter().count());
 
         // clear the current account list
         self.accounts.items.clear();
@@ -250,7 +215,6 @@ impl App {
     pub async fn delete_user(&mut self) {
         self.debug_msg = format!("{:?} deleting", self.username);
 
-        
         if self.username != "" {
             let deletion_status =
                 if let Ok(ds) = delete_user(&self.username).await {
@@ -281,8 +245,8 @@ impl App {
             InputContent::AccountID => self.new_account.acct_id = self.input.clone(),
             InputContent::AccountName => self.new_account.acct_name = self.input.clone(),
             InputContent::AccountType => self.new_account.acct_type = self.input.clone(),
-            InputContent::AccountLimit => self.new_account.card_limit = self.input.clone().parse::<f64>().unwrap(),
-            InputContent::TransactionAmount => self.new_trans.amount = self.input.clone().parse::<f64>().unwrap(),
+            InputContent::AccountLimit => self.new_account.card_limit = self.input.clone().parse::<f64>().unwrap_or_else(|_| 0.0),
+            InputContent::TransactionAmount => self.new_trans.amount = self.input.clone().parse::<f64>().unwrap_or_else(|_| 0.0),
             InputContent::TransactionCategory => self.new_trans.category = self.input.clone(),
             InputContent::TransactionDescription => self.new_trans.description = self.input.clone(),
             InputContent::TransactionType => self.new_trans.trans_type = self.input.clone(),
@@ -336,6 +300,9 @@ impl App {
     }
 
     pub async fn refresh_transactions(&mut self) {
+        if self.new_account.acct_id == "" {
+            return;
+        }
         let transactions = 
             if let Ok(trans) = query_account(
                 self.new_account.acct_id.parse().unwrap(),
@@ -497,28 +464,36 @@ impl App {
 
     pub fn next_input(&mut self) {
         let question_list = match self.page {
-            Page::NewAccount | Page::AccountDetails => {
-                self.new_acct_question_list.clone()
+            Page::NewAccount => {
+                Vec::from_iter(self.new_acct_question_list[..3].iter().cloned())
             }, 
+            Page::AccountDetails => {
+                self.new_acct_question_list.clone()
+            },
             Page::NewTransaction | Page::EditTransaction => {
                 self.new_trans_question_list.clone()
             },
-            _ => {Vec::new()}
+            _ => Vec::new()
         };
-        self.input_content = question_list[App::find_next_index(&question_list, self.input_content.clone()) as usize].clone();
+        let index = App::find_next_index(&question_list, self.input_content.clone());
+        self.input_content = question_list[index as usize].clone();
     }
 
     pub fn prev_input(&mut self) {
         let question_list = match self.page {
-            Page::NewAccount | Page::AccountDetails  => {
-                self.new_acct_question_list.clone()
+            Page::NewAccount => {
+                Vec::from_iter(self.new_acct_question_list[..3].iter().cloned())
             }, 
+            Page::AccountDetails => {
+                self.new_acct_question_list.clone()
+            },
             Page::NewTransaction | Page::EditTransaction => {
                 self.new_trans_question_list.clone()
             },
-            _ => {Vec::new()}
+            _ => Vec::new()
         };
-        self.input_content = question_list[App::find_prev_index(&question_list, self.input_content.clone()) as usize].clone();
+        let index = App::find_prev_index(&question_list, self.input_content.clone());
+        self.input_content = question_list[index as usize].clone();
     }
 
     const fn alternate_colors(i: usize) -> Color {

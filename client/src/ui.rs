@@ -82,6 +82,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                 key_instructions.push(String::from("Press return to submit the value"));
             } else {
                 key_instructions.push(String::from("Press e to enter username"));
+                key_instructions.push(String::from("Press esc or q to exit the application"));
             }
         },
         Page::AccountDetails => {
@@ -207,7 +208,11 @@ pub fn render(app: &mut App, frame: &mut Frame) {
             render_input_field(app, frame, username_position, "Username".to_string(), app.username.to_string(), InputContent::Username);
 
             frame.render_widget(
-                Paragraph::new(format!("... login first to see account details ...")).block(Block::bordered().title("Account Details")),
+                Paragraph::new(format!(
+                    r#"
+To view accounts for existing user profiles, enter a username that is registered with the system.
+To create a new user profile, enter a non-existing username and an empty profile will be created.
+                    "#)).block(Block::bordered().title("Account Details")),
                 right_content,
             );
         },
@@ -228,14 +233,14 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
             if app.new_account.acct_id == "" {
                 frame.render_widget(
-                    Paragraph::new("loading...").block(Block::bordered()),
+                    Paragraph::new("Please select an account").block(Block::bordered()),
                     right_content,
                 );
             } else {
                 render_input_field(app, frame, right_row_1_position, "Account Name".to_string(), app.new_account.acct_name.to_string(), InputContent::AccountName);
-                render_input_field(app, frame, right_row_2_position, "Account Type".to_string(), app.new_account.acct_type.to_string(), InputContent::AccountType);
+                render_input_field(app, frame, right_row_2_position, "Account Type (Chequing/Credit)".to_string(), app.new_account.acct_type.to_string(), InputContent::AccountType);
                 render_input_field(app, frame, right_row_3_position, "Card Limit".to_string(), app.new_account.card_limit.to_string(), InputContent::AccountLimit);
-                render_input_field(app, frame, right_row_4_position, "Filter Transaction Type".to_string(), app.filter_trans_type.to_string(), InputContent::FilterTransType);
+                render_input_field(app, frame, right_row_4_position, "Filter Transaction Type (Income/Expenses)".to_string(), app.filter_trans_type.to_string(), InputContent::FilterTransType);
                 render_input_field(app, frame, right_row_5_position, "Filter Transaction Category".to_string(), app.filter_trans_category.to_string(), InputContent::FilterTransCategory);
 
                 frame.render_widget(
@@ -268,7 +273,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
             // right data
             render_input_field(app, frame, right_row_1_position, "Account Name".to_string(), app.new_account.acct_name.to_string(), InputContent::AccountName);
-            render_input_field(app, frame, right_row_2_position, "Account Type".to_string(), app.new_account.acct_type.to_string(), InputContent::AccountType);
+            render_input_field(app, frame, right_row_2_position, "Account Type (Chequing/Credit)".to_string(), app.new_account.acct_type.to_string(), InputContent::AccountType);
             render_input_field(app, frame, right_row_3_position, "Card Limit".to_string(), app.new_account.card_limit.to_string(), InputContent::AccountLimit);
 
             frame.render_widget(
@@ -291,7 +296,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
             // right form
             render_input_field(app, frame, right_row_1_position, "Transaction Description".to_string(), app.new_trans.description.to_string(), InputContent::TransactionDescription);
-            render_input_field(app, frame, right_row_2_position, "Transaction Type".to_string(), app.new_trans.trans_type.to_string(), InputContent::TransactionType);
+            render_input_field(app, frame, right_row_2_position, "Transaction Type (Income/Expenses)".to_string(), app.new_trans.trans_type.to_string(), InputContent::TransactionType);
             render_input_field(app, frame, right_row_3_position, "Transaction Amount".to_string(), app.new_trans.amount.to_string(), InputContent::TransactionAmount);
             render_input_field(app, frame, right_row_4_position, "Transaction Category".to_string(), app.new_trans.category.to_string(), InputContent::TransactionCategory);
 
@@ -316,7 +321,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
             // right form
             render_input_field(app, frame, right_row_1_position, "Transaction Description".to_string(), app.new_trans.description.to_string(), InputContent::TransactionDescription);
-            render_input_field(app, frame, right_row_2_position, "Transaction Type".to_string(), app.new_trans.trans_type.to_string(), InputContent::TransactionType);
+            render_input_field(app, frame, right_row_2_position, "Transaction Type (Income/Expenses)".to_string(), app.new_trans.trans_type.to_string(), InputContent::TransactionType);
             render_input_field(app, frame, right_row_3_position, "Transaction Amount".to_string(), app.new_trans.amount.to_string(), InputContent::TransactionAmount);
             render_input_field(app, frame, right_row_4_position, "Transaction Category".to_string(), app.new_trans.category.to_string(), InputContent::TransactionCategory);
 

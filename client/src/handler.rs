@@ -51,7 +51,6 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                             app.next_input()
                         }
                     },
-                    // not working somehow currently
                     KeyCode::Char('b') => {
                         app.delete_user().await;
                         app.page = Page::Login;
@@ -110,7 +109,10 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                 InputMode::ViewAccountList if key_event.kind == KeyEventKind::Press => match key_event.code {
                     KeyCode::Up => app.select_prev(),
                     KeyCode::Down => app.select_next(),
-                    KeyCode::Esc => app.stop_select(),
+                    KeyCode::Esc => {
+                        app.stop_select();
+                        app.input_content = InputContent::AccountName;
+                    },
                     KeyCode::Enter => {
                         app.confirm_selection();
                         if app.list_content == ListType::Acct {
@@ -170,6 +172,10 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                     },
                     KeyCode::Char('c') => {
                         app.page = Page::AccountDetails;
+                        if app.new_account.acct_id != "" {
+                            app.list_content = ListType::Trans;
+                            app.select_first();
+                        }
                     },
                     KeyCode::Char('d') => {
                         if app.page == Page::EditTransaction {
@@ -182,6 +188,10 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                             app.create_or_update_transaction(true).await;
                         } else {
                             app.create_or_update_transaction(false).await;
+                        }
+                        if app.new_account.acct_id != "" {
+                            app.list_content = ListType::Trans;
+                            app.select_first();
                         }
                     }
                     _ => {}
