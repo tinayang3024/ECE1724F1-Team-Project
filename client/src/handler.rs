@@ -8,11 +8,6 @@ use crate::input::{
 };
 
 pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
-    // todo: this is here to ensure terminal cannot hang, 
-    //       need to remove eventually to allow entering q in Entering mode***
-    if key_event.code == KeyCode::Char('q') {
-        app.quit();
-    }
     match app.page {
         Page::Login => {
             match app.input_mode {
