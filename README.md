@@ -2,9 +2,9 @@
 
 ## Team Members
 
-- Dingyu Yang (1003802183) 
-- Sophie Mao (1004166957)
-- Renli Zhang (1005828339)
+- Dingyu Yang (1003802183 | dingyu.yang@mail.utoronto.ca) 
+- Sophie Mao (1004166957 | sophie.mao@mail.utoronto.ca)
+- Renli Zhang (1005828339 | renli.zhang@mail.utoronto.ca)
 
 ## Motivation
 The motivation behind choosing a Personal Finance Tracker as our team project stems from the desire to create a light-weight yet practical tool that can genuinely improve users' financial literacy and management skills. We recognized a gap in the Rust ecosystem for a user-friendly command-line utility that helps individuals track their income and expenses effectively.
