@@ -173,7 +173,7 @@ cargo build
 cargo run
 ```
 
-The tool should be ready to use. Note that please ensure that the terminal running the client program is expanded to full screen to ensure the UI is displayed properly.
+The tool should be ready to use. Please expand the terminal running the client program to full screen to ensure the UI is displayed properly.
 
 ## Contributions by each team member
 
