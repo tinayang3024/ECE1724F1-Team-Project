@@ -216,6 +216,10 @@ Developers can use these endpoints to integrate the server with other clients or
       curl http://localhost:8080/query_account -X POST -d "transaction_type=Income&category=work&account_id=1"
       ```
 
+## Video Demo
+
+Video Demo can be found in issue https://github.com/tinayang3024/ECE1724F1-Team-Project/issues/1.
+
 ## Contributions by each team member
 
 <table class="tg">
