@@ -56,6 +56,29 @@ The Personal Finance tracker will adopt a SQL-based back-end database for storin
 
 To communicate with the back-end database, the Personal Finance tracker will need a mechanism to transfer data from the front-end user interface to the back-end. Although for the scope of this project the team will not look into hosting the Personal Finance tracker as a web application, the communication between the user interface and the data storage shall still be robust and scalable so that it can be easily transformed into a modern web application outside of this project when the time and financial limits are uplifted. To achieve the scalability described above, the Personal Finance tracker has adopted a HTTPS protocol with a reqwest-based client and a actix-web-based server for the data transfer between the front-end and the back-end, with the server hosted locally for simplicity.
 
+## Reproducibility Guide
+1. Clone the Repository
+```bash
+git clone https://github.com/tinayang3024/ECE1724F1-Team-Project.git
+cd ECE1724F1-Team-Project
+```
+
+2. Navigate to the server side and start server
+```bash
+cd server
+cargo build
+cargo run
+```
+
+3. Navigate to the client side and start frontend
+```bash
+cd client
+cargo build
+cargo run
+```
+
+The tool should be ready to use. Please expand the terminal running the client program to full screen to ensure the UI is displayed properly.
+
 
 ## User's (or Developer’s) Guide
 
@@ -73,15 +96,17 @@ Users can perform the following operations through the frontend interface. Pleas
 ### Developer's Guide
 
 #### Server API endpoints
-Developers can use these endpoints to integrate the server with other clients or use curl to call the APIs. All create and query APIs will return results in JSON format, and all deleting record APIs will return a `200 OK` status upon successful operation. The following operations require the server to be started, please refer to step 1 and 2 from the [Reproducibility Guide](#reproducibility-guide).
+Developers can use these endpoints to integrate the server with other clients or use curl to call the APIs. All create and query APIs will return results in JSON format, and all deleting record APIs will return a `200 OK` status upon successful operation. The following operations require the server to be started, please refer to step 1 and 2 from the [Reproducibility Guide](#reproducibility-guide). **Note**: Following the below example curl commands in the listed sequence may not always succeed as the form data are randomly chosen and does not reflect the database status at the moment.
 
 - User API
 
-  - Create a new user or return existing user information
+  - Create a new user if the given username does not exist in the database, otherwise return existing user accounts.
 
     - URL: `/query_or_create_user`
 
     - METHOD: POST
+   
+    - RETURNS: A list of accounts associated with the user
 
     - Example Request Body (as `web::Form`): 
       ```rust 
@@ -112,11 +137,13 @@ Developers can use these endpoints to integrate the server with other clients or
 
 - Account API
 
-  - Create a new account or update existing account name or limit
+  - Create a new account or update existing account name or limit, username must exist in the database for this query to succeed
 
     - URL: `/create_or_update_account`
 
     - METHOD: POST
+   
+    - RETURNS: The account id of the created/updated account
 
     - Example Request Body (as `web::Form`): 
       ```rust 
@@ -128,7 +155,7 @@ Developers can use these endpoints to integrate the server with other clients or
       curl http://localhost:8080/create_or_update_account -X POST -d "username=Renli Zhang&account_name=First account&account_type=Chequing&account_limit=2000"
       ```
 
-  - Delete an account
+  - Delete an account, account id can be found by querying user information, or the id returned by account creation
     
     - URL: `/delete_account/{id}`
     
@@ -141,11 +168,13 @@ Developers can use these endpoints to integrate the server with other clients or
 
 - Transaction API
 
-  - Create a new transaction record or update existing transaction information
+  - Create a new transaction record or update existing transaction information, account id must exist in the database for this query to succeed
     
     - URL: `/create_or_update_transaction`
     
     - METHOD: POST
+   
+    - RETURNS: The transaction id of the created/updated transaction
 
     - Example Request Body (as `web::Form`): 
     ```rust 
@@ -157,7 +186,7 @@ Developers can use these endpoints to integrate the server with other clients or
       curl http://localhost:8080/create_or_update_transaction -X POST -d "transaction_date=2024-11-28&transaction_type=Income&category=work&amount=500&transaction_memo=first payment&account_id=1"
       ```
 
-  - Delete a transaction
+  - Delete a transaction, transaction id can be found by querying the accounts, or the id returned by transaction creation
     
     - URL: `/delete_transaction/{id}`
     
@@ -170,11 +199,13 @@ Developers can use these endpoints to integrate the server with other clients or
 
 - View Records API
 
-  - Query user's financial records by account, transaction type or category
+  - Query user's financial records by account, transaction type or category, account id must exist in the database for this query to succeed
     
     - URL: `/query_account`
     
     - METHOD: POST
+      
+    - RETURNS: A list of transaction associated with the provided account id that satisfy the given filter
 
     - Example Request Body (as `web::Form`): 
       ```rust 
@@ -184,29 +215,6 @@ Developers can use these endpoints to integrate the server with other clients or
       ```
       curl http://localhost:8080/query_account -X POST -d "transaction_type=Income&category=work&account_id=1"
       ```
-
-## Reproducibility Guide
-1. Clone the Repository
-```bash
-git clone https://github.com/tinayang3024/ECE1724F1-Team-Project.git
-cd ECE1724F1-Team-Project
-```
-
-2. Navigate to the server side and start server
-```bash
-cd server
-cargo build
-cargo run
-```
-
-3. Navigate to the client side and start frontend
-```bash
-cd client
-cargo build
-cargo run
-```
-
-The tool should be ready to use. Please expand the terminal running the client program to full screen to ensure the UI is displayed properly.
 
 ## Contributions by each team member
 
