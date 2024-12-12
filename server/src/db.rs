@@ -127,6 +127,9 @@ pub async fn query_account_transactions(
 
 pub async fn delete_single_user(pool: &PgPool, username: &str) -> Result<(), sqlx::Error> {
     let num_deleted = user_delete(pool, username).await?;
+    if num_deleted == 0 {
+        return Err(sqlx::Error::RowNotFound);
+    }
     if num_deleted != 1 {
         panic!("More than one user deleted, username is not unique! database is in a bad state, please contact admin :(");
     }
@@ -135,6 +138,9 @@ pub async fn delete_single_user(pool: &PgPool, username: &str) -> Result<(), sql
 
 pub async fn delete_single_account(pool: &PgPool, account_id: i64) -> Result<(), sqlx::Error> {
     let num_deleted = account_delete(pool, account_id).await?;
+    if num_deleted == 0 {
+        return Err(sqlx::Error::RowNotFound);
+    }
     if num_deleted != 1 {
         panic!("More than one account deleted, account_id is not unique! database is in a bad state, please contact admin :(");
     }
@@ -146,6 +152,9 @@ pub async fn delete_single_transaction(
     transaction_id: i64,
 ) -> Result<(), sqlx::Error> {
     let num_deleted = transaction_delete(pool, transaction_id).await?;
+    if num_deleted == 0 {
+        return Err(sqlx::Error::RowNotFound);
+    }
     if num_deleted != 1 {
         panic!("More than one transaction deleted, transaction_id is not unique! database is in a bad state, please contact admin :(");
     }
