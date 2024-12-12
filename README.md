@@ -85,13 +85,87 @@ The tool should be ready to use. Please expand the terminal running the client p
 ### User's Guide
 
 Users can perform the following operations through the frontend interface. Please follow the set up instructions in Reproducibility Guide section below to run both the server and client components. Ensure server is running before running clients to start the tool.
-- Create a new user / view existing user information
-- Create a new account / update existing account name or limit
-- Log a new transaction record / updating existing transaction information
-- Delete a user
-- Delete an account
-- Delete a transaction
-- View records
+
+#### Create a new user / view existing user information
+
+After running `cargo run` in the client side, the following page should be shown
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/0bb13a1d-81b0-4457-a096-151360906e97" />
+Press `e` and type in an example username `test`
+<img width="1470" alt="2" src="https://github.com/user-attachments/assets/59218e0b-f223-4828-bf36-1ac74e46d005" />
+Press `enter` to create the user, or view existing user information if the username is already registered
+
+#### Create a new account
+
+After pressing `enter` from the user page, the following page should be shown
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/37247490-1475-4eda-8204-6fe222e6cea2" />
+Press `a` to create an account, press `e`, type and press `enter` for each fields of the account information
+<img width="1470" alt="3" src="https://github.com/user-attachments/assets/435ed97d-a8d2-47e8-9a5f-b30b0029aac0" />
+Press `enter` again to create the account, you should see the created account showing up in the "Associated Accounts" panel under "Profile Data"
+<img width="1470" alt="4" src="https://github.com/user-attachments/assets/8d40747c-647c-46ba-bd29-821156dfc220" />
+
+####  Update existing account name or limit
+
+To update existing account information, first press `l` from the last page, you should see the account light up like below, press `enter` to select this account
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/9cb90e0a-6d2d-4cb4-83ed-c02d3cf8ab15" />
+press `esc` to exit account selection mode, then use `up` or `down` key to select the field of the account information to be changed, in this example, "Card limit" field is selected
+<img width="1470" alt="2" src="https://github.com/user-attachments/assets/88c120fb-3991-4f64-902d-ac100f767880" />
+press `e`, update the field, press `enter`, then `enter` again to update the field
+<img width="1470" alt="3" src="https://github.com/user-attachments/assets/a6493964-d3ee-457d-9de7-0591a1f1359f" />
+
+#### Log a new transaction record
+
+From the last step, press `t` to create a new transaction
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/f58bff60-f517-44f7-8e0c-a737405c4e50" />
+Press `e`, type and press `enter` for each fields of the transaction information
+<img width="1470" alt="2" src="https://github.com/user-attachments/assets/bacab5bd-d657-42a5-8a74-f20529175225" />
+Press `enter` again to create the transaction, you should see the created transaction showing up in the "Transaction Records" section under "Account Details of 1"
+<img width="1470" alt="3" src="https://github.com/user-attachments/assets/223d5ed4-91cb-4158-8fb7-9e1da7c18a9f" />
+Press `esc` to exit transaction selection mode
+
+
+#### View/Updating existing transaction information
+
+From last step, press `s` to enter transaction selection mode, then press `enter` to select the transaction we created above, that should take you back to a page similar as the transaction creation page, just press `e` and `enter` for the fields you would like to modify, then `enter` again when everything is done
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/2d6d9479-0a5b-4771-a4e3-28c91249ccaa" />
+Press `esc` to exit transaction selection mode
+
+#### Transaction filtering
+
+From last step, first press `esc` to exit transaction selection mode. We will create three more transactions following the instruction in [Log a new transaction record](#log-a-new-transaction-record) with the following information:
+
+  - Transaction Description: Dinner, Transaction Type: Expenses, Transaction Amount: 24.31, Transaction Category: Meal
+  - Transaction Description: TTC, Transaction Type: Expenses, Transaction Amount: 3.2, Transaction Category: Transit
+  - Transaction Description: Transaction, Transaction Type: Income, Transaction Amount: 500, Transaction Category: Pay
+
+The transaction page should look like the following now
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/e057087a-ea4f-45a5-bdc5-de642479696d" />
+Use `up` and `down` keys to select the filter option ("Transaction Type" or "Transaction Category"), in this example, we will filter by "Transaction Category" with "Meal", but feel free to experiment more other filtering options. Press `e`, enter "Meal", then `enter`, and `enter` again to apply the filtering, the "Transaction Records" and "Balance" fields should reflect the filtering
+<img width="1470" alt="2" src="https://github.com/user-attachments/assets/4e98ea1f-bb99-4114-86ce-4e9a656b85a1" />
+
+
+#### Delete a transaction
+
+Press `s` to enter transaction selection mode
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/483d50a3-f04a-4085-8178-44889def14ea" />
+Then `enter` on the transaction you would like to delete, for example, transaction for "Lunch"
+<img width="1470" alt="2" src="https://github.com/user-attachments/assets/8feecb37-c0ef-4099-b501-f51d2f8cce69" />
+Press `d` to delete the selected transaction, you should end up in the accounts page like below
+<img width="1470" alt="3" src="https://github.com/user-attachments/assets/2a4ff2a7-f1d3-46b0-9853-be7f7422c70a" />
+Press `esc` to exit transaction selection mode
+
+
+#### Delete an account
+
+In the account page, press `d` to delete the current account. You should end up with a page like the following:
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/a78c3085-4230-43de-950f-777f17b9c58c" />
+
+**Note**: If there are multiple accounts, press `l` to enter account selection mode, select the account to be deleted with `up` and `down` keys, press `enter`, then press `d`
+
+#### Delete a user
+
+From last step, press `b` to delete the user, you should return to the user creation page in the first step
+<img width="1470" alt="1" src="https://github.com/user-attachments/assets/03d74a32-88f3-4589-9177-c4a693656c86" />
+
 
 ### Developer's Guide
 
