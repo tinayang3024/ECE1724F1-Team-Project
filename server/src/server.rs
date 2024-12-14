@@ -68,8 +68,6 @@ async fn greet() -> impl Responder {
     HttpResponse::Ok().body("Server is up!")
 }
 
-////////////////////////// tbd: change all input type to json
-/// db api not returning any result.
 async fn query_or_create_user(
     pool: web::Data<PgPool>,
     user_data: web::Form<UserData>,
@@ -148,9 +146,6 @@ async fn create_or_update_transaction(
     let amount = info.amount.unwrap();
     let transaction_memo = &info.transaction_memo.as_ref().unwrap();
     let account_id = info.account_id;
-
-    // println!("create/update transaction triggered: transaction_date {:?} category {:?} transaction_memo {:?}", 
-    //     transaction_date, category, transaction_memo);
 
     match db::create_or_update_transaction(
         &pool,

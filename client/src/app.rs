@@ -84,7 +84,6 @@ impl Default for App {
             running: true,
             counter: 0,
             username: String::new(), // Default to an empty string
-            // account_selected_idx: 0, // Default to an empty string
             accounts: AccountList::from_iter([]),   
             trans_history: TransList::from_iter([]),  
             new_account: Account::new(
@@ -280,7 +279,6 @@ impl App {
             self.new_account.card_limit
         )
         .await;
-        // self.debug_msg = acct_id_str;
 
         // reload profile data after creating new account
         self.refresh_user_data().await;
@@ -292,7 +290,6 @@ impl App {
                 self.new_account.acct_id.parse().unwrap(),
             )
             .await;
-            // self.debug_msg = format!("{:?}", deletion_status);
             self.new_account.acct_id = "".to_string();
         }
         // reload profile data after creating new account
@@ -342,7 +339,6 @@ impl App {
                 return;
             };
     
-        // self.debug_msg = trans_id.clone();
         self.new_trans.transaction_id = trans_id;
     
         self.refresh_transactions().await;
@@ -355,7 +351,6 @@ impl App {
                 self.new_trans.transaction_id.parse().unwrap(),
             )
             .await;
-            // self.debug_msg = format!("{:?}", deletion_status);
             self.new_trans.transaction_id = "".to_string();
         }
         // reload profile data after creating new account
@@ -442,7 +437,6 @@ impl App {
         let index = App::find_index(vec, target);
         if index == -1 {
             -1
-        // } else if index == (vec.len()-1).try_into::<i32>().unwrap() {
         } else if index == <usize as TryInto<i32>>::try_into(vec.len() - 1).unwrap() {
             index
         } else {

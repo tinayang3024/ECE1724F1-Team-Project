@@ -38,23 +38,12 @@ struct ServerTransaction {
 impl ServerTransaction {
     fn to_transaction(&self) -> TransRecord {
         TransRecord::new(
-            // &format!("{}", self.account_id),
-            // &self.account_name,
-            // &self.account_type,
-            // &format!("{}", self.user_id),
-            // self.account_limit,
             &format!("{}", self.transaction_id),
-            // &self.transaction_id,
             &self.transaction_date,
             &self.transaction_type,
             &self.category,
             &self.transaction_memo,
             self.amount,
-            // pub timestamp: String,
-            // pub trans_type: String, // expense or income
-            // pub category: String,
-            // pub description: String,
-            // pub amount: f64,
         )
     }
 }
@@ -65,7 +54,6 @@ impl ServerTransaction {
 //     println!("Got account_id {} account_name {} user_id {}", account.acct_id, account.acct_name, account.user_id);
 // }
 pub async fn query_or_create_user(username: &str) -> Result<Vec<Account>, String> {
-    // TODO: need to convert card type number into text
     let url = format!("{SERVER_BASE_URL}/query_or_create_user");
     let client = reqwest::Client::new();
     let resp = client
